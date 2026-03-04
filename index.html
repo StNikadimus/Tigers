@@ -677,6 +677,144 @@
     font-family: 'Rajdhani', sans-serif; font-weight: 700; transition: background 0.2s;
   }
   .btn-delete-event:hover { background: rgba(244,67,54,0.3); }
+
+  /* ===== SHOP ===== */
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px; margin-top: 8px;
+  }
+  .shop-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+  }
+  .shop-card:hover { transform: translateY(-3px); border-color: var(--orange); }
+  .shop-card.sold-out { opacity: 0.5; cursor: not-allowed; }
+  .shop-card.sold-out:hover { transform: none; border-color: var(--border); }
+  .shop-card-img {
+    width: 100%; aspect-ratio: 1/1; object-fit: cover;
+    background: var(--card2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px;
+  }
+  .shop-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .shop-card-body { padding: 12px; }
+  .shop-card-name { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .shop-card-desc { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.3; }
+  .shop-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .shop-card-price { color: var(--orange); font-weight: 700; font-size: 15px; }
+  .shop-card-stock { font-size: 11px; color: var(--muted); }
+  .btn-buy {
+    background: var(--orange); color: #000; border: none;
+    padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1px;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .btn-buy:hover { background: var(--orange-bright); }
+  .btn-buy:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+  /* Shop image upload */
+  .shop-img-upload {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 20px; text-align: center; cursor: pointer;
+    transition: border-color 0.2s; margin-top: 6px;
+    min-height: 100px; display: flex; align-items: center; justify-content: center;
+  }
+  .shop-img-upload:hover { border-color: var(--orange); }
+  .shop-img-upload img { max-height: 120px; max-width: 100%; border-radius: 8px; }
+
+  /* Admin shop item row */
+  .admin-shop-item {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; margin-bottom: 10px;
+    display: flex; gap: 14px; align-items: center;
+  }
+  .admin-shop-thumb {
+    width: 56px; height: 56px; border-radius: 8px; object-fit: cover;
+    background: var(--card); display: flex; align-items: center;
+    justify-content: center; font-size: 24px; flex-shrink: 0; overflow: hidden;
+  }
+  .admin-shop-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .admin-shop-info { flex: 1; }
+  .admin-shop-name { font-weight: 700; font-size: 15px; }
+  .admin-shop-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .btn-toggle-stock {
+    background: rgba(76,175,80,0.15); color: #4caf50;
+    border: 1px solid #4caf50; padding: 6px 12px;
+    border-radius: 6px; cursor: pointer; font-size: 12px;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  }
+  .btn-toggle-stock.inactive { background: rgba(244,67,54,0.12); color: #ef5350; border-color: #ef5350; }
+
+  /* Purchase confirm modal */
+  .purchase-modal {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.8); display: flex;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .purchase-modal.hidden { display: none; }
+  .purchase-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; max-width: 340px; width: 100%;
+    text-align: center;
+  }
+  .purchase-box-img {
+    width: 100px; height: 100px; border-radius: 12px; object-fit: cover;
+    margin: 0 auto 16px; background: var(--card2);
+    display: flex; align-items: center; justify-content: center; font-size: 48px;
+    overflow: hidden;
+  }
+  .purchase-box-img img { width: 100%; height: 100%; object-fit: cover; }
+  .purchase-box-name { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; }
+  .purchase-box-price { color: var(--orange); font-size: 22px; font-weight: 700; margin: 8px 0 20px; }
+  .purchase-box-btns { display: flex; gap: 10px; justify-content: center; }
+
+
+  /* ===== ORDERS ===== */
+  .order-item {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+  .order-item.done { opacity: 0.6; }
+  .order-thumb {
+    width: 48px; height: 48px; border-radius: 8px; object-fit: cover;
+    background: var(--card); display: flex; align-items: center;
+    justify-content: center; font-size: 22px; flex-shrink: 0; overflow: hidden;
+  }
+  .order-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .order-info { flex: 1; min-width: 140px; }
+  .order-buyer { font-weight: 700; font-size: 15px; }
+  .order-item-name { font-size: 13px; color: var(--orange); margin-top: 2px; }
+  .order-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .order-status-pending {
+    display: inline-block; background: rgba(255,193,7,0.15); color: #ffc107;
+    border: 1px solid #ffc107; border-radius: 6px;
+    padding: 3px 10px; font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+  .order-status-done {
+    display: inline-block; background: rgba(76,175,80,0.15); color: #4caf50;
+    border: 1px solid #4caf50; border-radius: 6px;
+    padding: 3px 10px; font-size: 12px; font-weight: 700; white-space: nowrap;
+  }
+  .btn-mark-done {
+    background: rgba(76,175,80,0.15); color: #4caf50;
+    border: 1px solid #4caf50; padding: 7px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 13px;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .btn-mark-done:hover { background: rgba(76,175,80,0.3); }
+  .orders-summary {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
+    display: flex; gap: 24px; flex-wrap: wrap;
+  }
+  .orders-summary-stat { text-align: center; }
+  .orders-summary-val { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--orange); }
+  .orders-summary-lbl { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
 </style>
 </head>
 <body>
@@ -738,6 +876,7 @@
       <button class="home-tab active" onclick="switchHomeTab('htab-stave')">🎯 STAVE</button>
       <button class="home-tab" onclick="switchHomeTab('htab-lestvica')">🏆 LESTVICA</button>
       <button class="home-tab" onclick="switchHomeTab('htab-arhiv')">📦 ARHIV</button>
+      <button class="home-tab" onclick="switchHomeTab('htab-shop')">🛒 SHOP</button>
       <button class="home-tab" onclick="switchHomeTab('htab-profil')">👤 MOJ PROFIL</button>
     </div>
 
@@ -766,6 +905,14 @@
     <div class="home-tab-content" id="htab-arhiv">
       <div class="section-sub">Zaključene stave in rezultati</div>
       <div id="archiveWrap">
+        <div style="color:var(--muted);text-align:center;padding:40px 0;">Nalaganje...</div>
+      </div>
+    </div>
+
+    <!-- Tab: Shop -->
+    <div class="home-tab-content" id="htab-shop">
+      <div class="section-sub">Zamenjaj kovance za nagrade 🏆</div>
+      <div id="shopWrap">
         <div style="color:var(--muted);text-align:center;padding:40px 0;">Nalaganje...</div>
       </div>
     </div>
@@ -805,6 +952,7 @@
         <div style="color:var(--muted);font-size:14px;">Še nimaš stavkov.</div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -904,6 +1052,7 @@
       <button class="admin-tab active" onclick="switchTab('tab-nova')">+ NOVA STAVA</button>
       <button class="admin-tab" onclick="switchTab('tab-stave')">📋 STAVE</button>
       <button class="admin-tab" onclick="switchTab('tab-kovanci')">🪙 KOVANCI</button>
+      <button class="admin-tab" onclick="switchTab('tab-shop')">🛒 SHOP</button>
     </div>
 
     <!-- Tab: Nova stava -->
@@ -953,6 +1102,68 @@
         </div>
         <div id="usersCoinsList">
           <div style="color:var(--muted);font-size:14px;">Začni tipkati za iskanje...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-tab-content" id="tab-shop">
+      <div class="admin-section">
+        <div class="section-title" style="font-size:22px;margin-bottom:16px;">🛒 UPRAVLJANJE SHOPA</div>
+
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:24px;">
+          <div class="field-label" style="font-size:16px;margin-bottom:14px;">➕ DODAJ IZDELEK</div>
+          <div class="form-group">
+            <label class="field-label">IME IZDELKA</label>
+            <input type="text" class="input-field" id="shopItemName" placeholder="npr. Tigers majica">
+          </div>
+          <div class="form-group">
+            <label class="field-label">OPIS</label>
+            <input type="text" class="input-field" id="shopItemDesc" placeholder="Kratek opis izdelka...">
+          </div>
+          <div class="form-group">
+            <label class="field-label">CENA (kovanci 🪙)</label>
+            <input type="number" class="input-field" id="shopItemPrice" placeholder="500" min="1">
+          </div>
+          <div class="form-group">
+            <label class="field-label">ZALOGA (0 = neomejeno)</label>
+            <input type="number" class="input-field" id="shopItemStock" placeholder="10" min="0">
+          </div>
+          <div class="form-group">
+            <label class="field-label">THUMBNAIL (JPG/PNG slika)</label>
+            <input type="file" id="shopItemImage" accept="image/jpeg,image/png,image/webp"
+              style="display:none" onchange="previewShopImage(event)">
+            <div class="shop-img-upload" onclick="document.getElementById('shopItemImage').click()">
+              <div id="shopImgPreview">
+                <span style="font-size:32px;">🖼️</span>
+                <div style="color:var(--muted);font-size:13px;margin-top:6px;">Klikni za izbiro slike</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-main" style="margin-top:8px;font-size:18px;padding:12px 32px;" onclick="addShopItem()">DODAJ V SHOP</button>
+        </div>
+
+        <div class="field-label" style="font-size:16px;margin-bottom:12px;">📦 OBSTOJEČI IZDELKI</div>
+        <div id="adminShopList">
+          <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+        </div>
+
+        <div style="margin-top:32px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div class="field-label" style="font-size:16px;margin:0;">🧾 NAROČILA — KDO JE KUPIL</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select class="resolve-select" id="orderFilterSelect" onchange="loadAdminOrders()">
+                <option value="">Vsi izdelki</option>
+              </select>
+              <select class="resolve-select" id="orderStatusFilter" onchange="loadAdminOrders()">
+                <option value="">Vsi statusi</option>
+                <option value="pending">⏳ Čaka</option>
+                <option value="done">✅ Predano</option>
+              </select>
+            </div>
+          </div>
+          <div id="adminOrdersList">
+            <div style="color:var(--muted);font-size:14px;">Nalaganje naročil...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1050,6 +1261,18 @@ async function ensureFirebaseStructure() {
     const notifSnap = await notifPlaceholder.get();
     if (!notifSnap.exists) {
       await notifPlaceholder.set({ userId:'__init__', message:'__init__', read:true, createdAt:firebase.firestore.FieldValue.serverTimestamp(), _placeholder:true });
+    }
+
+    const shopPlaceholder = db.collection('shop').doc('__placeholder__');
+    const shopSnap = await shopPlaceholder.get();
+    if (!shopSnap.exists) {
+      await shopPlaceholder.set({ name:'__init__', price:0, active:false, _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    const purchasePlaceholder = db.collection('purchases').doc('__placeholder__');
+    const purchaseSnap = await purchasePlaceholder.get();
+    if (!purchaseSnap.exists) {
+      await purchasePlaceholder.set({ userId:'__init__', userName:'__init__', itemId:'__init__', itemName:'__init__', price:0, status:'done', _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
     }
 
     console.log('✅ Firebase struktura OK');
@@ -1157,11 +1380,12 @@ function switchHomeTab(tabId) {
   document.querySelectorAll('.home-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.home-tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
-  const tabs = ['htab-stave', 'htab-lestvica', 'htab-arhiv', 'htab-profil'];
+  const tabs = ['htab-stave', 'htab-lestvica', 'htab-arhiv', 'htab-shop', 'htab-profil'];
   document.querySelectorAll('.home-tab')[tabs.indexOf(tabId)]?.classList.add('active');
 
   if (tabId === 'htab-lestvica') loadLeaderboard();
   if (tabId === 'htab-arhiv') loadArchive();
+  if (tabId === 'htab-shop') loadShop();
   if (tabId === 'htab-profil') loadProfileStats();
 }
 
@@ -1561,7 +1785,8 @@ function switchTab(tabId) {
   document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   // Aktiviraj pravi gumb
-  const idx = ['tab-nova','tab-stave','tab-kovanci'].indexOf(tabId);
+  const idx = ['tab-nova','tab-stave','tab-kovanci','tab-shop'].indexOf(tabId);
+  if (tabId === 'tab-shop') { loadAdminShop(); loadAdminOrders(); }
   document.querySelectorAll('.admin-tab')[idx]?.classList.add('active');
 }
 
@@ -2001,6 +2226,359 @@ async function adjustCoins(userId, mode) {
     updateNavCoins();
   }
 }
+
+// ===== SHOP =====
+let currentPurchaseItem = null;
+
+async function loadShop() {
+  const wrap = document.getElementById('shopWrap');
+  wrap.innerHTML = `<div style="color:var(--muted);text-align:center;padding:40px 0;">Nalaganje...</div>`;
+  try {
+    const snap = await db.collection('shop').get();
+    const items = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(i => !i._placeholder && i.active !== false)
+      .sort((a, b) => (a.price || 0) - (b.price || 0));
+
+    if (items.length === 0) {
+      wrap.innerHTML = `<div style="color:var(--muted);text-align:center;padding:60px 20px;"><div style="font-size:48px;margin-bottom:12px;">🛒</div><div>Shop je trenutno prazen.<br>Kmalu prihajajo nagrade!</div></div>`;
+      return;
+    }
+
+    wrap.innerHTML = '<div class="shop-grid">' + items.map(item => {
+      const soldOut = item.stock > 0 && (item.sold || 0) >= item.stock;
+      const remaining = item.stock > 0 ? item.stock - (item.sold || 0) : null;
+      const imgHtml = item.imageBase64
+        ? '<img src="' + item.imageBase64 + '" alt="' + item.name + '">'
+        : '<span>🎁</span>';
+      return '<div class="shop-card' + (soldOut ? ' sold-out' : '') + '">' +
+        '<div class="shop-card-img">' + imgHtml + '</div>' +
+        '<div class="shop-card-body">' +
+          '<div class="shop-card-name">' + item.name + '</div>' +
+          '<div class="shop-card-desc">' + (item.desc || '') + '</div>' +
+          '<div class="shop-card-footer">' +
+            '<div>' +
+              '<div class="shop-card-price">' + item.price + ' 🪙</div>' +
+              '<div class="shop-card-stock">' + (soldOut ? '❌ Razprodano' : remaining !== null ? 'Ostalo: ' + remaining : '∞ Na zalogi') + '</div>' +
+            '</div>' +
+            '<button class="btn-buy" ' + (soldOut ? 'disabled' : '') + ' onclick="openPurchaseModal(\'' + item.id + '\')">' +
+              (soldOut ? 'KONEC' : 'KUPI') +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('') + '</div>';
+  } catch(e) {
+    wrap.innerHTML = '<div style="color:#ff4444;font-size:13px;text-align:center;padding:40px;">Napaka pri nalaganju shopa.</div>';
+    console.error(e);
+  }
+}
+
+function openPurchaseModal(itemId) {
+  db.collection('shop').doc(itemId).get().then(function(doc) {
+    if (!doc.exists) return;
+    const item = Object.assign({ id: doc.id }, doc.data());
+    currentPurchaseItem = item;
+
+    const imgEl = document.getElementById('purchaseImg');
+    imgEl.innerHTML = item.imageBase64
+      ? '<img src="' + item.imageBase64 + '" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">'
+      : '🎁';
+
+    document.getElementById('purchaseName').textContent = item.name;
+    document.getElementById('purchasePrice').textContent = item.price + ' 🪙';
+    document.getElementById('purchaseBalance').textContent =
+      'Tvoji kovanci: ' + (currentUser.coins || 0) + ' 🪙  →  po nakupu: ' + ((currentUser.coins || 0) - item.price) + ' 🪙';
+
+    document.getElementById('purchaseModal').classList.remove('hidden');
+  });
+}
+
+function closePurchaseModal() {
+  document.getElementById('purchaseModal').classList.add('hidden');
+  currentPurchaseItem = null;
+}
+
+async function confirmPurchase() {
+  if (!currentPurchaseItem || !currentUser) return;
+  const item = currentPurchaseItem;
+
+  if ((currentUser.coins || 0) < item.price) {
+    showToast('Nimaš dovolj kovancev! 😢', true);
+    closePurchaseModal();
+    return;
+  }
+
+  const freshDoc = await db.collection('shop').doc(item.id).get();
+  const fresh = freshDoc.data();
+  if (fresh.stock > 0 && (fresh.sold || 0) >= fresh.stock) {
+    showToast('Žal je ta artikel razprodan! 😔', true);
+    closePurchaseModal();
+    loadShop();
+    return;
+  }
+
+  const newCoins = (currentUser.coins || 0) - item.price;
+  await db.collection('users').doc(currentUser.id).update({ coins: newCoins });
+  currentUser.coins = newCoins;
+  updateNavCoins();
+
+  if (fresh.stock > 0) {
+    await db.collection('shop').doc(item.id).update({
+      sold: firebase.firestore.FieldValue.increment(1)
+    });
+  }
+
+  await db.collection('purchases').add({
+    userId: currentUser.id,
+    userName: currentUser.name,
+    itemId: item.id,
+    itemName: item.name,
+    itemImage: item.imageBase64 || null,
+    price: item.price,
+    status: 'pending',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  await sendNotification(currentUser.id, '🛒 Nakup uspešen! Kupil si: ' + item.name + ' za ' + item.price + ' 🪙. Admin bo kmalu stopil v kontakt!');
+
+  closePurchaseModal();
+  showToast('✅ Kupljeno: ' + item.name + '! Admin bo stopil v kontakt.');
+  loadShop();
+}
+
+// ===== ADMIN SHOP =====
+let shopImageBase64 = null;
+
+function previewShopImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Slika je prevelika! Max 2MB.', true);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    shopImageBase64 = e.target.result;
+    document.getElementById('shopImgPreview').innerHTML =
+      '<img src="' + shopImageBase64 + '" style="max-height:120px;max-width:100%;border-radius:8px;">';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function addShopItem() {
+  const name = document.getElementById('shopItemName').value.trim();
+  const desc = document.getElementById('shopItemDesc').value.trim();
+  const price = parseInt(document.getElementById('shopItemPrice').value) || 0;
+  const stock = parseInt(document.getElementById('shopItemStock').value) || 0;
+
+  if (!name || price < 1) {
+    showToast('Vpiši ime in ceno!', true);
+    return;
+  }
+
+  await db.collection('shop').add({
+    name: name, desc: desc, price: price, stock: stock, sold: 0,
+    imageBase64: shopImageBase64 || null,
+    active: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  document.getElementById('shopItemName').value = '';
+  document.getElementById('shopItemDesc').value = '';
+  document.getElementById('shopItemPrice').value = '';
+  document.getElementById('shopItemStock').value = '';
+  document.getElementById('shopItemImage').value = '';
+  document.getElementById('shopImgPreview').innerHTML =
+    '<span style="font-size:32px;">🖼️</span><div style="color:var(--muted);font-size:13px;margin-top:6px;">Klikni za izbiro slike</div>';
+  shopImageBase64 = null;
+
+  showToast('Izdelek dodan v shop! 🛒');
+  loadAdminShop();
+}
+
+async function loadAdminShop() {
+  const list = document.getElementById('adminShopList');
+  if (!list) return;
+  list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Nalaganje...</div>';
+
+  const snap = await db.collection('shop').get();
+  const items = snap.docs
+    .map(d => Object.assign({ id: d.id }, d.data()))
+    .filter(i => !i._placeholder)
+    .sort(function(a, b) {
+      const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(0);
+      const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : new Date(0);
+      return tb - ta;
+    });
+
+  if (items.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Ni izdelkov. Dodaj prvega zgoraj!</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(function(item) {
+    const thumbHtml = item.imageBase64
+      ? '<div class="admin-shop-thumb"><img src="' + item.imageBase64 + '"></div>'
+      : '<div class="admin-shop-thumb">🎁</div>';
+    const stockText = item.stock > 0
+      ? (item.sold || 0) + '/' + item.stock + ' prodano'
+      : (item.sold || 0) + ' prodano · ∞ zaloga';
+    return '<div class="admin-shop-item">' +
+      thumbHtml +
+      '<div class="admin-shop-info">' +
+        '<div class="admin-shop-name">' + item.name + '</div>' +
+        '<div class="admin-shop-meta">' + item.price + ' 🪙 · ' + stockText + '</div>' +
+        (item.desc ? '<div class="admin-shop-meta" style="margin-top:2px;">' + item.desc + '</div>' : '') +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">' +
+        '<button class="btn-toggle-stock' + (item.active === false ? ' inactive' : '') + '" onclick="toggleShopItem(\'' + item.id + '\', ' + (item.active !== false) + ')">' +
+          (item.active !== false ? '✅ AKTIVNO' : '❌ SKRITO') +
+        '</button>' +
+        '<button class="btn-delete-event" onclick="deleteShopItem(\'' + item.id + '\')">🗑 IZBRIŠI</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function toggleShopItem(itemId, currentlyActive) {
+  await db.collection('shop').doc(itemId).update({ active: !currentlyActive });
+  showToast(currentlyActive ? 'Izdelek skrit iz shopa.' : 'Izdelek je zdaj viden v shopu!');
+  loadAdminShop();
+}
+
+async function deleteShopItem(itemId) {
+  if (!confirm('Res izbrisati ta izdelek?')) return;
+  await db.collection('shop').doc(itemId).delete();
+  showToast('Izdelek izbrisan! 🗑');
+  loadAdminShop();
+}
+
+// ===== ADMIN ORDERS =====
+let allShopItems = [];
+
+async function loadAdminOrders() {
+  const list = document.getElementById('adminOrdersList');
+  if (!list) return;
+  list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Nalaganje narocil...</div>';
+
+  try {
+    if (allShopItems.length === 0) {
+      const shopSnap = await db.collection('shop').get();
+      allShopItems = shopSnap.docs
+        .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function(i) { return !i._placeholder; });
+
+      const sel = document.getElementById('orderFilterSelect');
+      if (sel && sel.options.length <= 1) {
+        allShopItems.forEach(function(item) {
+          const opt = document.createElement('option');
+          opt.value = item.id;
+          opt.textContent = item.name;
+          sel.appendChild(opt);
+        });
+      }
+    }
+
+    const filterItem = document.getElementById('orderFilterSelect') ? document.getElementById('orderFilterSelect').value : '';
+    const filterStatus = document.getElementById('orderStatusFilter') ? document.getElementById('orderStatusFilter').value : '';
+
+    const snap = await db.collection('purchases').get();
+    let orders = snap.docs
+      .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+      .filter(function(o) { return !o._placeholder; })
+      .sort(function(a, b) {
+        const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(0);
+        const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : new Date(0);
+        return tb - ta;
+      });
+
+    if (filterItem) orders = orders.filter(function(o) { return o.itemId === filterItem; });
+    if (filterStatus) orders = orders.filter(function(o) { return (o.status || 'pending') === filterStatus; });
+
+    const total = snap.docs.filter(function(d) { return !d.data()._placeholder; }).length;
+    const pending = snap.docs.filter(function(d) { return !d.data()._placeholder && (d.data().status || 'pending') === 'pending'; }).length;
+    const done = total - pending;
+
+    const summaryHtml = '<div class="orders-summary">' +
+      '<div class="orders-summary-stat"><div class="orders-summary-val">' + total + '</div><div class="orders-summary-lbl">SKUPAJ</div></div>' +
+      '<div class="orders-summary-stat"><div class="orders-summary-val" style="color:#ffc107;">' + pending + '</div><div class="orders-summary-lbl">CAKA NA PREDAJO</div></div>' +
+      '<div class="orders-summary-stat"><div class="orders-summary-val" style="color:#4caf50;">' + done + '</div><div class="orders-summary-lbl">PREDANO</div></div>' +
+      '</div>';
+
+    if (orders.length === 0) {
+      list.innerHTML = summaryHtml + '<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px 0;">Ni narocil za prikaz.</div>';
+      return;
+    }
+
+    var rows = orders.map(function(order) {
+      var date = order.createdAt && order.createdAt.toDate
+        ? order.createdAt.toDate().toLocaleString('sl-SI', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+        : '—';
+      var isDone = (order.status || 'pending') === 'done';
+      var thumbHtml = order.itemImage
+        ? '<div class="order-thumb"><img src="' + order.itemImage + '"></div>'
+        : '<div class="order-thumb">🎁</div>';
+      var actionHtml = isDone
+        ? '<span class="order-status-done">✅ PREDANO</span>'
+        : '<span class="order-status-pending">⏳ CAKA</span>' +
+          '<button class="btn-mark-done" id="done_' + order.id + '" onclick="markOrderDone(this)">✅ OZNACI KOT PREDANO</button>';
+      return '<div class="order-item' + (isDone ? ' done' : '') + '" ' +
+        'data-order-id="' + order.id + '" ' +
+        'data-user-id="' + (order.userId || '') + '" ' +
+        'data-item-name="' + (order.itemName || '').replace(/"/g, '&quot;') + '">' +
+        thumbHtml +
+        '<div class="order-info">' +
+          '<div class="order-buyer">🐯 ' + (order.userName || '—') + '</div>' +
+          '<div class="order-item-name">' + (order.itemName || '—') + '</div>' +
+          '<div class="order-meta">' + order.price + ' 🪙 · ' + date + '</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">' +
+          actionHtml +
+        '</div>' +
+      '</div>';
+    });
+
+    list.innerHTML = summaryHtml + rows.join('');
+  } catch(e) {
+    list.innerHTML = '<div style="color:#ff4444;font-size:13px;">Napaka pri nalaganju narocil.</div>';
+    console.error(e);
+  }
+}
+
+async function markOrderDone(btn) {
+  var row = btn.closest('[data-order-id]');
+  if (!row) return;
+  var orderId = row.getAttribute('data-order-id');
+  var userId = row.getAttribute('data-user-id');
+  var itemName = row.getAttribute('data-item-name');
+  try {
+    await db.collection('purchases').doc(orderId).update({ status: 'done' });
+    if (userId) {
+      await sendNotification(userId, '🎁 Tvoja nagrada "' + itemName + '" je bila predana! Uzivaj! 🐯');
+    }
+    showToast('Narocilo oznaceno kot predano! ✅');
+    loadAdminOrders();
+  } catch(e) {
+    showToast('Napaka!', true);
+    console.error(e);
+  }
+}
+
 </script>
+
+<!-- Purchase Confirm Modal -->
+<div class="purchase-modal hidden" id="purchaseModal">
+  <div class="purchase-box">
+    <div class="purchase-box-img" id="purchaseImg">🛒</div>
+    <div class="purchase-box-name" id="purchaseName">—</div>
+    <div class="purchase-box-price" id="purchasePrice">0 🪙</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px;" id="purchaseBalance"></div>
+    <div class="purchase-box-btns">
+      <button class="btn-main" style="font-size:18px;padding:12px 28px;" onclick="confirmPurchase()">KUPI ✅</button>
+      <button class="btn-sm" style="padding:12px 20px;font-size:16px;" onclick="closePurchaseModal()">PREKLIČI</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
