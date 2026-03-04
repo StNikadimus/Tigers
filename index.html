@@ -1745,10 +1745,16 @@ function initNotifications() {
   if (notifUnsub) notifUnsub();
   notifUnsub = db.collection('notifications')
     .where('userId', '==', currentUser.id)
-    .orderBy('createdAt', 'desc')
     .limit(20)
     .onSnapshot(snap => {
-      const notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const notifs = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(n => !n._placeholder)
+        .sort((a, b) => {
+          const ta = a.createdAt?.toDate?.() || new Date(0);
+          const tb = b.createdAt?.toDate?.() || new Date(0);
+          return tb - ta;
+        });
       notifUnread = notifs.filter(n => !n.read).length;
       renderNotifications(notifs);
       const badge = document.getElementById('notifBadge');
@@ -1827,10 +1833,16 @@ function loadComments(eventId) {
 
   commentUnsub = db.collection('comments')
     .where('eventId', '==', eventId)
-    .orderBy('createdAt', 'asc')
     .limit(50)
     .onSnapshot(snap => {
-      const comments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const comments = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(c => !c._placeholder)
+        .sort((a, b) => {
+          const ta = a.createdAt?.toDate?.() || new Date(0);
+          const tb = b.createdAt?.toDate?.() || new Date(0);
+          return ta - tb;
+        });
       if (comments.length === 0) {
         list.innerHTML = `<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;">Bodi prvi s komentarjem! 💬</div>`;
         return;
