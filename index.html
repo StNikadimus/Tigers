@@ -815,6 +815,132 @@
   .orders-summary-stat { text-align: center; }
   .orders-summary-val { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--orange); }
   .orders-summary-lbl { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+  /* ===== PLAYERS LIST ===== */
+  .player-row {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .player-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--orange); color: #000; font-weight: 700; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .player-info { flex: 1; min-width: 120px; }
+  .player-name { font-weight: 700; font-size: 15px; }
+  .player-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .btn-delete-player {
+    background: rgba(244,67,54,0.12); color: #ef5350;
+    border: 1px solid #ef5350; padding: 7px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 13px;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; white-space: nowrap;
+  }
+  .btn-delete-player:hover { background: rgba(244,67,54,0.3); }
+
+  /* ===== RESOLVED EVENT ACTIONS ===== */
+  .btn-unresolve {
+    background: rgba(255,152,0,0.15); color: #ffa726;
+    border: 1px solid #ffa726; padding: 6px 12px;
+    border-radius: 6px; cursor: pointer; font-size: 13px;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; white-space: nowrap;
+  }
+  .btn-unresolve:hover { background: rgba(255,152,0,0.3); }
+  .btn-change-winner {
+    background: rgba(33,150,243,0.15); color: #64b5f6;
+    border: 1px solid #64b5f6; padding: 6px 12px;
+    border-radius: 6px; cursor: pointer; font-size: 13px;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; white-space: nowrap;
+  }
+  .btn-change-winner:hover { background: rgba(33,150,243,0.3); }
+
+  /* ===== TOPUP / KUPI KOVANCE ===== */
+  .topup-section {
+    background: linear-gradient(135deg, rgba(255,107,0,0.08), rgba(255,140,0,0.04));
+    border: 1px solid rgba(255,107,0,0.3);
+    border-radius: 14px; padding: 20px; margin-bottom: 4px;
+  }
+  .topup-header { margin-bottom: 16px; }
+  .topup-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 26px;
+    letter-spacing: 3px; color: var(--orange);
+  }
+  .topup-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  .topup-packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .topup-pkg-card {
+    background: var(--card); border: 2px solid var(--border);
+    border-radius: 12px; padding: 16px 12px; text-align: center;
+    cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .topup-pkg-card:hover { border-color: var(--orange); transform: translateY(-2px); }
+  .topup-pkg-card.selected { border-color: var(--orange); background: rgba(255,107,0,0.08); }
+  .topup-pkg-coins {
+    font-family: 'Bebas Neue', sans-serif; font-size: 36px;
+    color: var(--orange); line-height: 1;
+  }
+  .topup-pkg-label { font-size: 12px; color: var(--muted); margin: 4px 0 8px; }
+  .topup-pkg-price {
+    background: var(--orange); color: #000; font-weight: 700;
+    font-size: 16px; border-radius: 6px; padding: 4px 10px;
+    display: inline-block;
+  }
+  .topup-pkg-bonus {
+    position: absolute; top: -8px; right: -8px;
+    background: #4caf50; color: #000; font-size: 10px; font-weight: 700;
+    padding: 2px 6px; border-radius: 10px;
+  }
+
+  .topup-order-btn {
+    width: 100%; margin-top: 14px;
+    background: var(--orange); color: #000; border: none;
+    padding: 12px; border-radius: 8px; cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px;
+    transition: background 0.2s;
+  }
+  .topup-order-btn:hover { background: var(--orange-bright); }
+  .topup-order-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+  /* My pending topup orders */
+  .my-topup-order {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; margin-top: 8px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .my-topup-order.done { border-color: #4caf50; background: rgba(76,175,80,0.05); }
+  .topup-order-info { flex: 1; }
+  .topup-order-pkg { font-weight: 700; font-size: 14px; }
+  .topup-order-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* Admin topup order row */
+  .admin-topup-row {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .admin-topup-row.done { opacity: 0.55; }
+  .admin-topup-info { flex: 1; min-width: 150px; }
+  .admin-topup-buyer { font-weight: 700; font-size: 15px; }
+  .admin-topup-pkg { font-size: 13px; color: var(--orange); margin-top: 2px; }
+  .admin-topup-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .btn-confirm-topup {
+    background: rgba(76,175,80,0.15); color: #4caf50;
+    border: 1px solid #4caf50; padding: 8px 16px;
+    border-radius: 6px; cursor: pointer; font-size: 13px;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; white-space: nowrap;
+  }
+  .btn-confirm-topup:hover { background: rgba(76,175,80,0.3); }
+
+  /* Admin package row */
+  .admin-pkg-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .admin-pkg-row:last-child { border-bottom: none; }
 </style>
 </head>
 <body>
@@ -911,10 +1037,20 @@
 
     <!-- Tab: Shop -->
     <div class="home-tab-content" id="htab-shop">
-      <div class="section-sub">Zamenjaj kovance za nagrade 🏆</div>
-      <div id="shopWrap">
-        <div style="color:var(--muted);text-align:center;padding:40px 0;">Nalaganje...</div>
+
+      <!-- Kupi kovance -->
+      <div class="topup-section">
+        <div class="topup-header">
+          <div class="topup-title">💶 KUPI KOVANCE</div>
+          <div class="topup-sub">Izberi paket, naroči in prikaži adminu potrdilo</div>
+        </div>
+        <div id="topupPackagesWrap">
+          <div style="color:var(--muted);text-align:center;padding:20px 0;">Nalaganje paketov...</div>
+        </div>
+        <div id="topupMyOrdersWrap" style="margin-top:20px;"></div>
       </div>
+
+
     </div>
 
     <!-- Tab: Profil -->
@@ -1047,12 +1183,22 @@
       </div>
     </div>
 
+    <!-- Admin info bar -->
+    <div id="adminInfoBar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="adminRoleBadge" style="background:var(--orange);color:#000;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:3px 10px;border-radius:6px;">—</span>
+        <span id="adminNameDisplay" style="font-weight:700;font-size:15px;">—</span>
+      </div>
+      <button onclick="showChangePassword()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔑 Spremeni geslo</button>
+    </div>
+
     <!-- Tabs -->
-    <div class="admin-tabs">
+    <div class="admin-tabs" id="adminTabsBar">
       <button class="admin-tab active" onclick="switchTab('tab-nova')">+ NOVA STAVA</button>
       <button class="admin-tab" onclick="switchTab('tab-stave')">📋 STAVE</button>
       <button class="admin-tab" onclick="switchTab('tab-kovanci')">🪙 KOVANCI</button>
-      <button class="admin-tab" onclick="switchTab('tab-shop')">🛒 SHOP</button>
+      <button class="admin-tab" onclick="switchTab('tab-igralci')">👥 IGRALCI</button>
+      <button class="admin-tab" id="tab-admini-btn" style="display:none;" onclick="switchTab('tab-admini')">🔐 ADMINI</button>
     </div>
 
     <!-- Tab: Nova stava -->
@@ -1096,12 +1242,48 @@
     <!-- Tab: Kovanci -->
     <div class="admin-tab-content" id="tab-kovanci">
       <div class="admin-section">
-        <div style="margin-bottom:20px;">
-          <div class="field-label" style="margin-bottom:8px;">POIŠČI IGRALCA</div>
-          <input type="text" class="input-field" id="coinSearchInput" placeholder="Ime igralca..." oninput="searchUsers()">
+
+        <!-- Top-up packages management -->
+        <div class="section-title" style="font-size:20px;margin-bottom:14px;">💶 PAKETI ZA NAKUP KOVANCEV</div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;">
+          <div class="field-label" style="margin-bottom:12px;">➕ DODAJ PAKET</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:1;min-width:120px;">
+              <div class="field-label" style="font-size:12px;">NAZIV (npr. Petka)</div>
+              <input type="text" class="input-field" id="pkgLabel" placeholder="npr. Petka">
+            </div>
+            <div style="width:110px;">
+              <div class="field-label" style="font-size:12px;">KOVANCEV 🪙</div>
+              <input type="number" class="input-field" id="pkgCoins" placeholder="100" min="1">
+            </div>
+            <div style="width:110px;">
+              <div class="field-label" style="font-size:12px;">ZALOGA (0 = ∞)</div>
+              <input type="number" class="input-field" id="pkgStock" placeholder="0" min="0">
+            </div>
+            <button class="btn-resolve" style="height:42px;white-space:nowrap;" onclick="addTopupPackage()">+ DODAJ</button>
+          </div>
+          <div id="adminPackagesList" style="margin-top:16px;"></div>
         </div>
-        <div id="usersCoinsList">
-          <div style="color:var(--muted);font-size:14px;">Začni tipkati za iskanje...</div>
+
+        <!-- Pending topup orders -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div class="section-title" style="font-size:20px;margin:0;">📋 NAROČILA KOVANCEV</div>
+          <select class="resolve-select" id="topupStatusFilter" onchange="loadAdminTopupOrders()">
+            <option value="">Vsi statusi</option>
+            <option value="pending">⏳ Čaka</option>
+            <option value="done">✅ Potrjeno</option>
+          </select>
+        </div>
+        <div id="adminTopupOrdersList">
+          <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+        </div>
+
+        <div style="margin-top:32px;border-top:1px solid var(--border);padding-top:24px;">
+          <div class="field-label" style="margin-bottom:8px;font-size:16px;">🔧 ROČNO UPRAVLJANJE KOVANCEV</div>
+          <input type="text" class="input-field" id="coinSearchInput" placeholder="Ime igralca..." oninput="searchUsers()" style="margin-bottom:12px;">
+          <div id="usersCoinsList">
+            <div style="color:var(--muted);font-size:14px;">Začni tipkati za iskanje...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1171,7 +1353,119 @@
   </div>
 </div>
 
+    <div class="admin-tab-content" id="tab-igralci">
+      <div class="admin-section" style="padding-bottom:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+          <div class="section-title" style="font-size:22px;margin:0;">👥 VSI IGRALCI</div>
+          <button class="btn-resolve" onclick="loadAllPlayers()">🔄 OSVEŽI</button>
+        </div>
+        <input type="text" class="input-field" id="playerSearchInput" placeholder="Išči po imenu..." oninput="filterPlayersList()" style="margin-bottom:0;">
+      </div>
+      <div id="allPlayersList" style="padding:0 24px 24px;">
+        <div style="color:var(--muted);font-size:14px;padding-top:16px;">Nalaganje...</div>
+      </div>
+    </div>
+
 <!-- Admin Login Modal -->
+    <!-- Tab: Admini (superadmin only) -->
+    <div class="admin-tab-content" id="tab-admini">
+      <div class="admin-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+          <div class="section-title" style="font-size:22px;margin:0;">🔐 UPRAVLJANJE ADMINOV</div>
+        </div>
+
+        <!-- Roles management -->
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <div class="field-label">🏷️ VRSTE ADMINOV (VLOGE)</div>
+            <button onclick="showAddRole()" style="background:transparent;border:1px solid var(--orange);color:var(--orange);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:Rajdhani,sans-serif;font-weight:700;">+ NOVA VRSTA</button>
+          </div>
+          <div id="rolesList" style="margin-bottom:0;"></div>
+
+          <!-- Add role form (hidden) -->
+          <div id="addRoleForm" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+            <div class="field-label" style="margin-bottom:12px;font-size:12px;">NOVA VRSTA ADMINA</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+              <div style="width:60px;">
+                <div class="field-label" style="font-size:11px;">IKONA</div>
+                <input type="text" class="input-field" id="newRoleEmoji" placeholder="🏆" maxlength="2" style="text-align:center;font-size:20px;">
+              </div>
+              <div style="flex:1;min-width:120px;">
+                <div class="field-label" style="font-size:11px;">IME VLOGE</div>
+                <input type="text" class="input-field" id="newRoleName" placeholder="npr. Shop Admin">
+              </div>
+              <div style="flex:2;min-width:180px;">
+                <div class="field-label" style="font-size:11px;">DOVOLJENJA (obkljukaj)</div>
+                <div id="newRolePerms" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">
+                  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" value="events"> 🎯 Stave</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" value="coins"> 🪙 Kovanci</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" value="players"> 👥 Igralci</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" value="settings"> ⚙️ Nastavitve</label>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button onclick="saveNewRole()" class="btn-resolve" style="height:42px;">SHRANI</button>
+                <button onclick="document.getElementById('addRoleForm').style.display='none'" class="btn-cancel" style="height:42px;">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add admin form -->
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;">
+          <div class="field-label" style="margin-bottom:14px;">➕ DODAJ ADMINA</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:1;min-width:130px;">
+              <div class="field-label" style="font-size:12px;">IME</div>
+              <input type="text" class="input-field" id="newAdminName" placeholder="Ime admina...">
+            </div>
+            <div style="flex:1;min-width:130px;">
+              <div class="field-label" style="font-size:12px;">GESLO</div>
+              <input type="password" class="input-field" id="newAdminPass" placeholder="Geslo...">
+            </div>
+            <div style="flex:1;min-width:160px;">
+              <div class="field-label" style="font-size:12px;">VLOGA</div>
+              <select class="resolve-select" id="newAdminRole" style="width:100%;height:42px;">
+                <option value="event_admin">🎯 Event Admin</option>
+                <option value="superadmin">👑 Super Admin</option>
+              </select>
+            </div>
+            <button class="btn-resolve" style="height:42px;" onclick="addAdmin()">+ DODAJ</button>
+          </div>
+        </div>
+
+        <!-- Admin list -->
+        <div class="field-label" style="margin-bottom:10px;">ADMINI</div>
+        <div id="adminsList">
+          <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+        </div>
+      </div>
+    </div>
+
+<!-- Change Password Modal -->
+<div id="changePassModal" class="modal-overlay hidden">
+  <div class="modal" style="border-color:#444;max-width:360px;">
+    <h2 style="color:#fff;">🔑 SPREMENI GESLO</h2>
+    <div style="margin-bottom:12px;">
+      <div class="field-label" style="margin-bottom:6px;">STARO GESLO</div>
+      <input type="password" class="input-field" id="oldPassInput" placeholder="Trenutno geslo...">
+    </div>
+    <div style="margin-bottom:12px;">
+      <div class="field-label" style="margin-bottom:6px;">NOVO GESLO</div>
+      <input type="password" class="input-field" id="newPassInput" placeholder="Novo geslo...">
+    </div>
+    <div style="margin-bottom:16px;">
+      <div class="field-label" style="margin-bottom:6px;">POTRDI NOVO GESLO</div>
+      <input type="password" class="input-field" id="newPassConfirm" placeholder="Ponovi geslo...">
+    </div>
+    <div id="changePassError" style="color:#ff4444;font-size:13px;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-cancel" onclick="document.getElementById('changePassModal').classList.add('hidden')" style="flex:1;">PREKLIČI</button>
+      <button class="btn-resolve" onclick="doChangePassword()" style="flex:2;">SHRANI</button>
+    </div>
+  </div>
+</div>
+
 <div id="adminLoginModal" class="modal-overlay hidden">
   <div class="modal" style="border-color:#444;">
     <h2 style="color:#fff;">⚙ ADMIN</h2>
@@ -1195,10 +1489,45 @@
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK (compat verzija - deluje brez module scope) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+// ===== GLOBAL STATE =====
+var currentUser = null;
+var currentEventId = null;
+var selectedOption = null;
+var allEvents = [];
+var allUsers = [];
+var unsubEvents = null;
+var unsubUser = null;
+var notifUnread = 0;
+var notifUnsub = null;
+var commentUnsub = null;
+var currentPurchaseItem = null;
+var shopImageBase64 = null;
+var allShopItems = [];
+var allPlayersCache = [];
+var selectedTopupPkg = null;
+var STARTING_COINS = 500;
+var DAILY_BONUS = 50;
+var currentAdmin = null; // { id, name, role, permissions: [] }
+
+// Permission constants
+var PERM = {
+  EVENTS:   'events',
+  COINS:    'coins',
+  PLAYERS:  'players',
+  ADMINS:   'admins',
+  SETTINGS: 'settings'
+};
+
+// Role definitions — add new roles here in future
+var ROLES = {
+  superadmin: { label: '👑 Super Admin', permissions: ['events','coins','players','admins','settings'] },
+  event_admin: { label: '🎯 Event Admin', permissions: ['events'] }
+};
+
 const firebaseConfig = {
   apiKey: "AIzaSyCLlZ8eyRRUXIGxQCOmVN6LJd0eVVg64l0",
   authDomain: "beteing-tigers.firebaseapp.com",
@@ -1212,19 +1541,43 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// ===== STATE =====
-let currentUser = null;
-let currentEventId = null;
-let selectedOption = null;
-let allEvents = [];
-let allUsers = [];
-let unsubEvents = null;
-let unsubUser = null;
-
-const STARTING_COINS = 500;
-const DAILY_BONUS = 50;
-
 // ===== FIREBASE STRUCTURE INIT =====
+// ===== INACTIVITY BONUS =====
+async function checkInactivityBonus(userId) {
+  try {
+    var userDoc = await db.collection('users').doc(userId).get();
+    if (!userDoc.exists) return;
+    var data = userDoc.data();
+    var lastActive = data.lastActive ? data.lastActive.toDate() : null;
+    var now = new Date();
+
+    // If never set, just set it now
+    if (!lastActive) {
+      await db.collection('users').doc(userId).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() });
+      return;
+    }
+
+    var daysSince = (now - lastActive) / (1000 * 60 * 60 * 24);
+    if (daysSince >= 3) {
+      var bonus = 200;
+      var newCoins = (data.coins || 0) + bonus;
+      await db.collection('users').doc(userId).update({
+        coins: newCoins,
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await sendNotification(userId, '🎁 Nazaj! Prejel si ' + bonus + ' 🪙 ker 3+ dni nisi bil aktiven. Dobrodošel nazaj!');
+      return bonus;
+    } else {
+      // Just update lastActive on each login
+      await db.collection('users').doc(userId).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() });
+      return 0;
+    }
+  } catch(e) {
+    console.error('Inactivity check error:', e);
+    return 0;
+  }
+}
+
 async function ensureFirebaseStructure() {
   try {
     const adminCfgRef = db.collection('config').doc('admin');
@@ -1239,40 +1592,66 @@ async function ensureFirebaseStructure() {
       await appCfgRef.set({ startingCoins: STARTING_COINS, appName: 'Tigers Stavljenje', version: '1.0', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     }
 
-    const evPlaceholder = db.collection('events').doc('__placeholder__');
+    const evPlaceholder = db.collection('events').doc('_init_');
     const evSnap = await evPlaceholder.get();
     if (!evSnap.exists) {
       await evPlaceholder.set({ question:'__init__', opt1:'__init__', opt2:'__init__', opt3:null, resolved:true, winner:null, bets:{}, totalBets:0, endsAt:new Date(0), createdAt:firebase.firestore.FieldValue.serverTimestamp(), _placeholder:true });
     }
 
-    const betPlaceholder = db.collection('bets').doc('__placeholder__');
+    const betPlaceholder = db.collection('bets').doc('_init_');
     const betSnap = await betPlaceholder.get();
     if (!betSnap.exists) {
       await betPlaceholder.set({ userId:'__init__', userName:'__init__', eventId:'__init__', question:'__init__', option:'__init__', amount:0, result:'lose', payout:0, createdAt:firebase.firestore.FieldValue.serverTimestamp(), _placeholder:true });
     }
 
-    const commPlaceholder = db.collection('comments').doc('__placeholder__');
+    const commPlaceholder = db.collection('comments').doc('_init_');
     const commSnap2 = await commPlaceholder.get();
     if (!commSnap2.exists) {
       await commPlaceholder.set({ eventId:'__init__', userId:'__init__', userName:'__init__', text:'__init__', createdAt:firebase.firestore.FieldValue.serverTimestamp(), _placeholder:true });
     }
 
-    const notifPlaceholder = db.collection('notifications').doc('__placeholder__');
+    const notifPlaceholder = db.collection('notifications').doc('_init_');
     const notifSnap = await notifPlaceholder.get();
     if (!notifSnap.exists) {
       await notifPlaceholder.set({ userId:'__init__', message:'__init__', read:true, createdAt:firebase.firestore.FieldValue.serverTimestamp(), _placeholder:true });
     }
 
-    const shopPlaceholder = db.collection('shop').doc('__placeholder__');
+    const shopPlaceholder = db.collection('shop').doc('_init_');
     const shopSnap = await shopPlaceholder.get();
     if (!shopSnap.exists) {
       await shopPlaceholder.set({ name:'__init__', price:0, active:false, _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
     }
 
-    const purchasePlaceholder = db.collection('purchases').doc('__placeholder__');
+    const purchasePlaceholder = db.collection('purchases').doc('_init_');
     const purchaseSnap = await purchasePlaceholder.get();
     if (!purchaseSnap.exists) {
       await purchasePlaceholder.set({ userId:'__init__', userName:'__init__', itemId:'__init__', itemName:'__init__', price:0, status:'done', _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    const topupPkgPh = db.collection('topupPackages').doc('_init_');
+    const topupPkgSnap = await topupPkgPh.get();
+    if (!topupPkgSnap.exists) {
+      await topupPkgPh.set({ label:'__init__', eur:0, coins:0, active:false, _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    const topupOrderPh = db.collection('topupOrders').doc('_init_');
+    const topupOrderSnap = await topupOrderPh.get();
+    if (!topupOrderSnap.exists) {
+      await topupOrderPh.set({ userId:'__init__', userName:'__init__', packageId:'__init__', label:'__init__', eur:0, coins:0, status:'pending', _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    // AdminRoles collection
+    const rolesPh = db.collection('adminRoles').doc('_init_');
+    const rolesPhSnap = await rolesPh.get();
+    if (!rolesPhSnap.exists) {
+      await rolesPh.set({ label:'__init__', permissions:[], _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    // Admins collection
+    const adminsPh = db.collection('admins').doc('_init_');
+    const adminsPhSnap = await adminsPh.get();
+    if (!adminsPhSnap.exists) {
+      await adminsPh.set({ name:'__init__', password:'__init__', role:'superadmin', permissions:[], _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
     }
 
     console.log('✅ Firebase struktura OK');
@@ -1291,6 +1670,7 @@ document.addEventListener('click', function(e) {
   }
 });
 
+
 // ===== UTILS =====
 function showToast(msg, isError=false) {
   const t = document.getElementById('toast');
@@ -1300,8 +1680,9 @@ function showToast(msg, isError=false) {
 }
 
 function setScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
 }
 
 function timeLeft(endsAt) {
@@ -1334,13 +1715,19 @@ async function submitName() {
   const snap = await userRef.get();
 
   if (snap.exists) {
-    currentUser = { id: userId, ...snap.data() };
-    showToast(`Dobrodošel nazaj, ${currentUser.name}! 🐯`);
+    currentUser = Object.assign({ id: userId }, snap.data());
+    var inactBonus = await checkInactivityBonus(userId);
+    if (inactBonus > 0) {
+      currentUser.coins = (currentUser.coins || 0) + inactBonus;
+      showToast('Dobrodošel nazaj! +' + inactBonus + ' 🪙 bonus za vrnitev!');
+    } else {
+      showToast('Dobrodošel nazaj, ' + currentUser.name + '! 🐯');
+    }
   } else {
     const userData = { name, coins: STARTING_COINS, createdAt: firebase.firestore.FieldValue.serverTimestamp(), totalBets: 0, wins: 0, lastBonusDate: null };
     await userRef.set(userData);
     currentUser = { id: userId, name, coins: STARTING_COINS, totalBets: 0, wins: 0, lastBonusDate: null };
-    showToast(`Dobrodošel, ${name}! Prejel si ${STARTING_COINS} kovancev! 🐯`);
+    showToast('Dobrodošel, ' + name + '! Prejel si ' + STARTING_COINS + ' kovancev! 🐯');
   }
 
   document.getElementById('nameModal').classList.add('hidden');
@@ -1377,6 +1764,7 @@ async function claimBonus() {
 
 // ===== HOME TABS =====
 function switchHomeTab(tabId) {
+  window.scrollTo(0, 0);
   document.querySelectorAll('.home-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.home-tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
@@ -1385,7 +1773,7 @@ function switchHomeTab(tabId) {
 
   if (tabId === 'htab-lestvica') loadLeaderboard();
   if (tabId === 'htab-arhiv') loadArchive();
-  if (tabId === 'htab-shop') loadShop();
+  if (tabId === 'htab-shop') loadTopupPackages();
   if (tabId === 'htab-profil') loadProfileStats();
 }
 
@@ -1736,7 +2124,7 @@ async function placeBet() {
 // ===== ADMIN =====
 function showAdminLogin() {
   document.getElementById('adminLoginModal').classList.remove('hidden');
-  setTimeout(() => document.getElementById('adminNameInput').focus(), 100);
+  setTimeout(function() { document.getElementById('adminNameInput').focus(); }, 100);
   document.getElementById('adminError').textContent = '';
 }
 
@@ -1744,50 +2132,293 @@ function closeAdminModal() {
   document.getElementById('adminLoginModal').classList.add('hidden');
 }
 
+function hasPerm(perm) {
+  if (!currentAdmin) return false;
+  return currentAdmin.permissions.indexOf(perm) !== -1;
+}
+
 async function tryAdminLogin() {
-  const inputName = document.getElementById('adminNameInput').value.trim();
-  const inputPass = document.getElementById('adminPassInput').value.trim();
+  var inputName = document.getElementById('adminNameInput').value.trim();
+  var inputPass = document.getElementById('adminPassInput').value.trim();
   if (!inputName || !inputPass) {
     document.getElementById('adminError').textContent = 'Vpiši ime in geslo!';
     return;
   }
 
-  const cfgRef = db.collection('config').doc('admin');
-  const cfgSnap = await cfgRef.get();
+  // Check admins collection
+  var snap = await db.collection('admins').get();
+  var admins = snap.docs
+    .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+    .filter(function(a) { return !a._placeholder; });
 
-  if (!cfgSnap.exists || !cfgSnap.data().name) {
-    await cfgRef.set({ name: inputName, password: inputPass, initialized: true });
+  // First login ever — create superadmin
+  if (admins.length === 0) {
+    var role = 'superadmin';
+    var perms = ROLES[role].permissions;
+    var docRef = await db.collection('admins').add({
+      name: inputName, password: inputPass,
+      role: role, permissions: perms,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    currentAdmin = { id: docRef.id, name: inputName, role: role, permissions: perms };
     closeAdminModal();
-    showToast('Admin račun ustvarjen! 🔐');
+    showToast('Super Admin ustvarjen! 👑');
+    enterAdmin();
+    return;
+  }
+
+  // Find matching admin
+  var found = admins.find(function(a) { return a.name === inputName && a.password === inputPass; });
+  if (found) {
+    currentAdmin = found;
+    closeAdminModal();
     enterAdmin();
   } else {
-    const cfg = cfgSnap.data();
-    if (cfg.name === inputName && cfg.password === inputPass) {
-      closeAdminModal();
-      enterAdmin();
-    } else {
-      document.getElementById('adminError').textContent = 'Napačno ime ali geslo!';
-    }
+    document.getElementById('adminError').textContent = 'Napačno ime ali geslo!';
   }
 }
 
 async function enterAdmin() {
   setScreen('admin');
   allUsers = [];
-  // Vedno pokaži prvi tab
-  switchTab('tab-nova');
+
+  // Show admin info
+  var roleInfo = ROLES[currentAdmin.role] || { label: currentAdmin.role };
+  document.getElementById('adminRoleBadge').textContent = roleInfo.label;
+  document.getElementById('adminNameDisplay').textContent = currentAdmin.name;
+
+  // Show/hide tabs based on permissions
+  var tabAdminiBtn = document.getElementById('tab-admini-btn');
+  if (tabAdminiBtn) tabAdminiBtn.style.display = hasPerm(PERM.ADMINS) ? '' : 'none';
+
+  // Hide tabs based on role
+  var allTabBtns = document.querySelectorAll('.admin-tab');
+  // tab order: nova(0), stave(1), kovanci(2), igralci(3), admini(4)
+  if (!hasPerm(PERM.EVENTS)) {
+    allTabBtns[0] && (allTabBtns[0].style.display = 'none');
+    allTabBtns[1] && (allTabBtns[1].style.display = 'none');
+  }
+  if (!hasPerm(PERM.COINS)) {
+    allTabBtns[2] && (allTabBtns[2].style.display = 'none');
+  }
+  if (!hasPerm(PERM.PLAYERS)) {
+    allTabBtns[3] && (allTabBtns[3].style.display = 'none');
+  }
+
+  // Go to first available tab
+  if (hasPerm(PERM.EVENTS)) switchTab('tab-nova');
+  else if (hasPerm(PERM.COINS)) switchTab('tab-kovanci');
+  else if (hasPerm(PERM.PLAYERS)) switchTab('tab-igralci');
+  else if (hasPerm(PERM.ADMINS)) switchTab('tab-admini');
+
   loadAdminStats();
   loadAdminEvents();
 }
 
 function switchTab(tabId) {
-  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  // Aktiviraj pravi gumb
-  const idx = ['tab-nova','tab-stave','tab-kovanci','tab-shop'].indexOf(tabId);
-  if (tabId === 'tab-shop') { loadAdminShop(); loadAdminOrders(); }
-  document.querySelectorAll('.admin-tab')[idx]?.classList.add('active');
+  document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.admin-tab-content').forEach(function(c) { c.classList.remove('active'); });
+  var tabEl = document.getElementById(tabId);
+  if (tabEl) tabEl.classList.add('active');
+  // Activate button
+  var tabIds = ['tab-nova','tab-stave','tab-kovanci','tab-igralci','tab-admini'];
+  var idx = tabIds.indexOf(tabId);
+  var btns = document.querySelectorAll('.admin-tab');
+  if (btns[idx]) btns[idx].classList.add('active');
+  if (tabId === 'tab-kovanci') { loadAdminPackages(); loadAdminTopupOrders(); }
+  if (tabId === 'tab-igralci') loadAllPlayers();
+  if (tabId === 'tab-admini') loadAdminsList();
+  window.scrollTo(0, 0);
+}
+
+// ===== CHANGE PASSWORD =====
+function showChangePassword() {
+  document.getElementById('oldPassInput').value = '';
+  document.getElementById('newPassInput').value = '';
+  document.getElementById('newPassConfirm').value = '';
+  document.getElementById('changePassError').textContent = '';
+  document.getElementById('changePassModal').classList.remove('hidden');
+}
+
+async function doChangePassword() {
+  var oldPass = document.getElementById('oldPassInput').value.trim();
+  var newPass = document.getElementById('newPassInput').value.trim();
+  var confirm = document.getElementById('newPassConfirm').value.trim();
+  var errEl = document.getElementById('changePassError');
+
+  if (!oldPass || !newPass || !confirm) { errEl.textContent = 'Izpolni vsa polja!'; return; }
+  if (oldPass !== currentAdmin.password) { errEl.textContent = 'Staro geslo je napačno!'; return; }
+  if (newPass !== confirm) { errEl.textContent = 'Novi gesli se ne ujemata!'; return; }
+  if (newPass.length < 3) { errEl.textContent = 'Geslo mora imeti vsaj 3 znake!'; return; }
+
+  await db.collection('admins').doc(currentAdmin.id).update({ password: newPass });
+  currentAdmin.password = newPass;
+  document.getElementById('changePassModal').classList.add('hidden');
+  showToast('Geslo spremenjeno! 🔑');
+}
+
+// ===== ADMINS MANAGEMENT =====
+// ===== ROLES MANAGEMENT =====
+async function loadRolesFromDB() {
+  // Load custom roles from Firestore and merge with built-in ROLES
+  try {
+    var snap = await db.collection('adminRoles').get();
+    snap.docs.forEach(function(d) {
+      if (!d.data()._placeholder) {
+        ROLES[d.id] = { label: d.data().label, permissions: d.data().permissions, custom: true };
+      }
+    });
+  } catch(e) { console.warn('loadRolesFromDB:', e); }
+}
+
+function renderRolesList() {
+  var el = document.getElementById('rolesList');
+  if (!el) return;
+  var keys = Object.keys(ROLES);
+  el.innerHTML = keys.map(function(rk) {
+    var r = ROLES[rk];
+    var isBuiltIn = !r.custom;
+    var permLabels = { events:'🎯 Stave', coins:'🪙 Kovanci', players:'👥 Igralci', admins:'🔐 Admini', settings:'⚙️ Nastavitve' };
+    var permStr = r.permissions.map(function(p) { return permLabels[p] || p; }).join(', ') || '—';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">' +
+      '<span style="font-weight:700;min-width:160px;">' + r.label + '</span>' +
+      '<span style="font-size:12px;color:var(--muted);flex:1;">' + permStr + '</span>' +
+      (isBuiltIn
+        ? '<span style="font-size:11px;color:#555;padding:2px 8px;border:1px solid #333;border-radius:4px;">VGRAJENA</span>'
+        : '<button data-rk="' + rk + '" onclick="deleteRole(this.dataset.rk)" style="background:transparent;border:1px solid #ff4444;color:#ff4444;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:12px;">🗑 BRIŠI</button>') +
+    '</div>';
+  }).join('');
+}
+
+function showAddRole() {
+  document.getElementById('addRoleForm').style.display = 'block';
+  document.getElementById('newRoleEmoji').value = '';
+  document.getElementById('newRoleName').value = '';
+  document.querySelectorAll('#newRolePerms input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+}
+
+async function saveNewRole() {
+  var emoji = document.getElementById('newRoleEmoji').value.trim() || '👤';
+  var name = document.getElementById('newRoleName').value.trim();
+  if (!name) { showToast('Vpiši ime vloge!', true); return; }
+
+  var perms = [];
+  document.querySelectorAll('#newRolePerms input[type=checkbox]:checked').forEach(function(cb) { perms.push(cb.value); });
+
+  var roleKey = name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  if (ROLES[roleKey]) { showToast('Vloga s tem imenom že obstaja!', true); return; }
+
+  var label = emoji + ' ' + name;
+  ROLES[roleKey] = { label: label, permissions: perms, custom: true };
+
+  // Save to Firestore
+  await db.collection('adminRoles').doc(roleKey).set({
+    label: label, permissions: perms,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  // Update role dropdown
+  refreshRoleDropdown();
+  renderRolesList();
+  document.getElementById('addRoleForm').style.display = 'none';
+  showToast('Vloga "' + label + '" dodana! 🎉');
+}
+
+async function deleteRole(roleKey) {
+  if (!confirm('Izbriši vlogo "' + ROLES[roleKey].label + '"? Admini s to vlogo bodo ostali brez dovoljenj.')) return;
+  delete ROLES[roleKey];
+  await db.collection('adminRoles').doc(roleKey).delete();
+  refreshRoleDropdown();
+  renderRolesList();
+  showToast('Vloga izbrisana.');
+}
+
+function refreshRoleDropdown() {
+  var sel = document.getElementById('newAdminRole');
+  if (!sel) return;
+  sel.innerHTML = Object.keys(ROLES).map(function(rk) {
+    return '<option value="' + rk + '">' + ROLES[rk].label + '</option>';
+  }).join('');
+}
+
+async function loadAdminsList() {
+  // Also load roles and render
+  await loadRolesFromDB();
+  renderRolesList();
+  refreshRoleDropdown();
+  var list = document.getElementById('adminsList');
+  if (!list) return;
+
+  var snap = await db.collection('admins').get();
+  var admins = snap.docs
+    .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+    .filter(function(a) { return !a._placeholder; })
+    .sort(function(a, b) { return (a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0) - (b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0); });
+
+  if (admins.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Ni adminov.</div>';
+    return;
+  }
+
+  list.innerHTML = admins.map(function(a) {
+    var roleInfo = ROLES[a.role] || { label: a.role };
+    var isSelf = currentAdmin && a.id === currentAdmin.id;
+    return '<div style="background:var(--card2);border:1px solid ' + (isSelf ? 'var(--orange)' : 'var(--border)') + ';border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
+      '<div style="flex:1;min-width:150px;">' +
+        '<div style="font-weight:700;font-size:15px;">' + a.name + (isSelf ? ' <span style="color:var(--orange);font-size:12px;">(ti)</span>' : '') + '</div>' +
+        '<div style="font-size:12px;color:var(--muted);margin-top:3px;">' + roleInfo.label + '</div>' +
+      '</div>' +
+      '<select class="resolve-select" data-aid="' + a.id + '" onchange="changeAdminRole(this.dataset.aid, this.value)" ' + (isSelf ? 'disabled' : '') + '>' +
+        Object.keys(ROLES).map(function(rk) {
+          return '<option value="' + rk + '"' + (a.role === rk ? ' selected' : '') + '>' + ROLES[rk].label + '</option>';
+        }).join('') +
+      '</select>' +
+      (!isSelf ? '<button class="btn-delete-event" style="padding:6px 12px;" data-aid="' + a.id + '" data-aname="' + a.name + '" onclick="deleteAdminBtn(this)">🗑</button>' : '') +
+    '</div>';
+  }).join('');
+}
+
+async function addAdmin() {
+  var name = document.getElementById('newAdminName').value.trim();
+  var pass = document.getElementById('newAdminPass').value.trim();
+  var role = document.getElementById('newAdminRole').value;
+  if (!name || !pass) { showToast('Izpolni ime in geslo!', true); return; }
+
+  // Check duplicate name
+  var snap = await db.collection('admins').where('name', '==', name).get();
+  var existing = snap.docs.filter(function(d) { return !d.data()._placeholder; });
+  if (existing.length > 0) { showToast('Admin s tem imenom že obstaja!', true); return; }
+
+  var perms = ROLES[role] ? ROLES[role].permissions : [];
+  await db.collection('admins').add({
+    name: name, password: pass, role: role, permissions: perms,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  document.getElementById('newAdminName').value = '';
+  document.getElementById('newAdminPass').value = '';
+  showToast('Admin dodan! 🔐');
+  loadAdminsList();
+}
+
+async function changeAdminRole(adminId, newRole) {
+  var perms = ROLES[newRole] ? ROLES[newRole].permissions : [];
+  await db.collection('admins').doc(adminId).update({ role: newRole, permissions: perms });
+  showToast('Vloga spremenjena!');
+  loadAdminsList();
+}
+
+function deleteAdminBtn(btn) {
+  var adminId = btn.getAttribute('data-aid');
+  var adminName = btn.getAttribute('data-aname');
+  deleteAdmin(adminId, adminName);
+}
+
+async function deleteAdmin(adminId, adminName) {
+  if (!confirm('Izbriši admina "' + adminName + '"?')) return;
+  await db.collection('admins').doc(adminId).delete();
+  showToast('Admin izbrisan.');
+  loadAdminsList();
 }
 
 async function loadAdminStats() {
@@ -1827,7 +2458,11 @@ async function loadAdminEvents() {
           <select class="resolve-select" id="sel_${e.id}">${resolveOpts}</select>
           <button class="btn-resolve" onclick="resolveEvent('${e.id}')">RAZREŠI</button>
           <button class="btn-extend" onclick="extendEvent('${e.id}')">+24h ⏱</button>
-        ` : ''}
+        ` : `
+          <select class="resolve-select" id="resel_${e.id}">${resolveOpts}</select>
+          <button class="btn-change-winner" onclick="changeWinner('${e.id}')">✏️ SPREMENI ZMAGOVALCA</button>
+          <button class="btn-unresolve" onclick="unresolveEvent('${e.id}')">↩️ RAZVELJAVI</button>
+        `}
         <button class="btn-delete-event" onclick="deleteEvent('${e.id}')">🗑 IZBRIŠI</button>
       </div>
     </div>`;
@@ -1962,8 +2597,7 @@ async function loadArchive() {
 }
 
 // ===== NOTIFICATIONS =====
-let notifUnread = 0;
-let notifUnsub = null;
+
 
 function initNotifications() {
   if (!currentUser) return;
@@ -2049,7 +2683,7 @@ async function sendNotification(userId, message) {
 }
 
 // ===== COMMENTS =====
-let commentUnsub = null;
+
 
 function loadComments(eventId) {
   if (commentUnsub) commentUnsub();
@@ -2228,7 +2862,7 @@ async function adjustCoins(userId, mode) {
 }
 
 // ===== SHOP =====
-let currentPurchaseItem = null;
+
 
 async function loadShop() {
   const wrap = document.getElementById('shopWrap');
@@ -2348,7 +2982,7 @@ async function confirmPurchase() {
 }
 
 // ===== ADMIN SHOP =====
-let shopImageBase64 = null;
+
 
 function previewShopImage(event) {
   const file = event.target.files[0];
@@ -2455,7 +3089,7 @@ async function deleteShopItem(itemId) {
 }
 
 // ===== ADMIN ORDERS =====
-let allShopItems = [];
+
 
 async function loadAdminOrders() {
   const list = document.getElementById('adminOrdersList');
@@ -2561,6 +3195,522 @@ async function markOrderDone(btn) {
     loadAdminOrders();
   } catch(e) {
     showToast('Napaka!', true);
+    console.error(e);
+  }
+}
+
+// ===== RAZVELJAVI STAVO =====
+async function unresolveEvent(eventId) {
+  if (!confirm('Razveljavi stavo? Vsi kovanci bodo vrnjeni, stava bo spet aktivna.')) return;
+
+  showToast('Razveljavljanje... prosim počakaj ⏳');
+
+  try {
+    const betsSnap = await db.collection('bets').where('eventId', '==', eventId).get();
+    const betDocs = betsSnap.docs.filter(d => !d.data()._placeholder);
+
+    for (const bd of betDocs) {
+      const b = bd.data();
+      // Vrni kovance samo tistim ki so izgubili (zmagovalci so jih že dobili nazaj pri resolve)
+      if (b.result === 'lose') {
+        const uSnap = await db.collection('users').doc(b.userId).get();
+        if (uSnap.exists) {
+          await db.collection('users').doc(b.userId).update({
+            coins: (uSnap.data().coins || 0) + b.amount
+          });
+        }
+      } else if (b.result === 'win') {
+        // Vzemi nazaj izplačilo in vrni stavek
+        const uSnap = await db.collection('users').doc(b.userId).get();
+        if (uSnap.exists) {
+          const newCoins = Math.max(0, (uSnap.data().coins || 0) - (b.payout || 0) + b.amount);
+          await db.collection('users').doc(b.userId).update({
+            coins: newCoins,
+            wins: Math.max(0, (uSnap.data().wins || 0) - 1)
+          });
+        }
+      }
+      // Reset bet to pending
+      await db.collection('bets').doc(bd.id).update({ result: 'pending', payout: 0 });
+      // Notify user
+      await sendNotification(b.userId, '↩️ Stava "' + (b.question || '') + '" je bila razveljavljena. Tvoji kovanci so bili vrnjeni!');
+    }
+
+    // Reset event
+    await db.collection('events').doc(eventId).update({ resolved: false, winner: null });
+
+    showToast('Stava razveljavljena, kovanci vrnjeni! ↩️');
+    loadAdminEvents();
+  } catch(e) {
+    showToast('Napaka pri razveljavljanju!', true);
+    console.error(e);
+  }
+}
+
+// ===== SPREMENI ZMAGOVALCA =====
+async function changeWinner(eventId) {
+  const selEl = document.getElementById('resel_' + eventId);
+  const newWinner = selEl ? selEl.value : null;
+  if (!newWinner) return;
+
+  const ev = allEvents.find(e => e.id === eventId);
+  if (!ev || ev.winner === newWinner) {
+    showToast('Izberi drugega zmagovalca!', true);
+    return;
+  }
+
+  if (!confirm('Spremeni zmagovalca na "' + newWinner + '"? Stara izplačila bodo razveljavljena in nova izračunana.')) return;
+
+  showToast('Posodabljam... prosim počakaj ⏳');
+
+  try {
+    // Step 1: razveljavi staro resolucijo (brez potrditve)
+    const betsSnap = await db.collection('bets').where('eventId', '==', eventId).get();
+    const betDocs = betsSnap.docs.filter(d => !d.data()._placeholder);
+
+    for (const bd of betDocs) {
+      const b = bd.data();
+      if (b.result === 'lose') {
+        const uSnap = await db.collection('users').doc(b.userId).get();
+        if (uSnap.exists) {
+          await db.collection('users').doc(b.userId).update({ coins: (uSnap.data().coins || 0) + b.amount });
+        }
+      } else if (b.result === 'win') {
+        const uSnap = await db.collection('users').doc(b.userId).get();
+        if (uSnap.exists) {
+          const newCoins = Math.max(0, (uSnap.data().coins || 0) - (b.payout || 0) + b.amount);
+          await db.collection('users').doc(b.userId).update({
+            coins: newCoins,
+            wins: Math.max(0, (uSnap.data().wins || 0) - 1)
+          });
+        }
+      }
+      await db.collection('bets').doc(bd.id).update({ result: 'pending', payout: 0 });
+    }
+
+    // Step 2: resolviraj z novim zmagovalcem
+    await db.collection('events').doc(eventId).update({ winner: newWinner });
+
+    const freshBets = betDocs.map(d => ({ id: d.id, ...d.data(), result: 'pending', payout: 0 }));
+    const totalPool = freshBets.reduce((s, b) => s + b.amount, 0);
+    const winPool = freshBets.filter(b => b.option === newWinner).reduce((s, b) => s + b.amount, 0);
+    const payoutRatio = winPool > 0 ? totalPool / winPool : 1;
+
+    for (const b of freshBets) {
+      const isWin = b.option === newWinner;
+      const payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
+      await db.collection('bets').doc(b.id).update({ result: isWin ? 'win' : 'lose', payout });
+      if (isWin) {
+        const uSnap = await db.collection('users').doc(b.userId).get();
+        if (uSnap.exists) {
+          await db.collection('users').doc(b.userId).update({
+            coins: (uSnap.data().coins || 0) + payout,
+            wins: (uSnap.data().wins || 0) + 1
+          });
+        }
+        await sendNotification(b.userId, '🔄 Zmagovalec spremenjen! Nova zmaga: "' + newWinner + '" +' + payout + ' 🪙');
+      } else {
+        await sendNotification(b.userId, '🔄 Zmagovalec spremenjen. Nov zmagovalec je: ' + newWinner);
+      }
+    }
+
+    showToast('Zmagovalec spremenjen na: ' + newWinner + ' ✅');
+    loadAdminEvents();
+  } catch(e) {
+    showToast('Napaka pri spremembi!', true);
+    console.error(e);
+  }
+}
+
+// ===== VSI IGRALCI =====
+
+
+async function loadAllPlayers() {
+  const list = document.getElementById('allPlayersList');
+  if (!list) return;
+  list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Nalaganje...</div>';
+
+  try {
+    const snap = await db.collection('users').get();
+    allPlayersCache = snap.docs
+      .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+      .filter(function(u) { return !u._placeholder && u.name; })
+      .sort(function(a, b) { return (b.coins || 0) - (a.coins || 0); });
+
+    renderPlayersList(allPlayersCache);
+  } catch(e) {
+    list.innerHTML = '<div style="color:#ff4444;font-size:13px;">Napaka pri nalaganju.</div>';
+    console.error(e);
+  }
+}
+
+function filterPlayersList() {
+  const q = (document.getElementById('playerSearchInput').value || '').toUpperCase();
+  const filtered = q ? allPlayersCache.filter(function(u) { return u.name.toUpperCase().includes(q); }) : allPlayersCache;
+  renderPlayersList(filtered);
+}
+
+function renderPlayersList(players) {
+  const list = document.getElementById('allPlayersList');
+  if (!list) return;
+
+  if (players.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px 0;">Ni igralcev.</div>';
+    return;
+  }
+
+  const total = allPlayersCache.length;
+  const totalCoins = allPlayersCache.reduce(function(s, u) { return s + (u.coins || 0); }, 0);
+
+  list.innerHTML = '<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;gap:24px;flex-wrap:wrap;">' +
+    '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:28px;color:var(--orange);">' + total + '</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">SKUPAJ IGRALCEV</div></div>' +
+    '<div style="text-align:center;"><div style="font-family:Bebas Neue,sans-serif;font-size:28px;color:var(--orange);">' + totalCoins + '</div><div style="font-size:11px;color:var(--muted);letter-spacing:1px;">SKUPAJ KOVANCEV</div></div>' +
+    '</div>' +
+    players.map(function(u, i) {
+      const wr = u.totalBets > 0 ? Math.round((u.wins || 0) / u.totalBets * 100) : 0;
+      const initials = u.name.charAt(0).toUpperCase();
+      return '<div class="player-row">' +
+        '<div class="player-avatar">' + initials + '</div>' +
+        '<div class="player-info">' +
+          '<div class="player-name">' + u.name + '</div>' +
+          '<div class="player-meta">' + (u.coins || 0) + ' 🪙 · ' + (u.totalBets || 0) + ' stav · ' + wr + '% WR</div>' +
+        '</div>' +
+        '<button class="btn-delete-player" data-uid="' + u.id + '" data-uname="' + u.name.replace(/"/g, '') + '" onclick="deletePlayer(this)">🗑 IZBRIŠI PROFIL</button>' +
+      '</div>';
+    }).join('');
+}
+
+async function deletePlayer(btn) {
+  const userId = btn.getAttribute('data-uid');
+  const userName = btn.getAttribute('data-uname');
+  if (!confirm('IZBRIŠI profil "' + userName + '"? To bo izbrisalo VSE stavke, kovance in zgodovino tega igralca. Tega ni mogoče razveljaviti!')) return;
+
+  showToast('Brisanje profila... ⏳');
+  try {
+    // Delete all bets
+    const betsSnap = await db.collection('bets').where('userId', '==', userId).get();
+    const batch1 = db.batch();
+    betsSnap.docs.forEach(function(d) { batch1.delete(d.ref); });
+    await batch1.commit();
+
+    // Delete all notifications
+    const notifSnap = await db.collection('notifications').where('userId', '==', userId).get();
+    const batch2 = db.batch();
+    notifSnap.docs.forEach(function(d) { batch2.delete(d.ref); });
+    await batch2.commit();
+
+    // Delete all comments
+    const commSnap = await db.collection('comments').where('userId', '==', userId).get();
+    const batch3 = db.batch();
+    commSnap.docs.forEach(function(d) { batch3.delete(d.ref); });
+    await batch3.commit();
+
+    // Delete purchases
+    const purchSnap = await db.collection('purchases').where('userId', '==', userId).get();
+    const batch4 = db.batch();
+    purchSnap.docs.forEach(function(d) { batch4.delete(d.ref); });
+    await batch4.commit();
+
+    // Delete user doc
+    await db.collection('users').doc(userId).delete();
+
+    showToast('Profil "' + userName + '" izbrisan! 🗑');
+    loadAllPlayers();
+    loadAdminStats();
+  } catch(e) {
+    showToast('Napaka pri brisanju!', true);
+    console.error(e);
+  }
+}
+
+// ===== TOP-UP: KUPI KOVANCE (HOME) =====
+
+
+async function loadTopupPackages() {
+  const wrap = document.getElementById('topupPackagesWrap');
+  const ordersWrap = document.getElementById('topupMyOrdersWrap');
+  if (!wrap) return;
+
+  try {
+    const snap = await db.collection('topupPackages').get();
+    const packages = snap.docs
+      .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+      .filter(function(p) { return !p._placeholder && p.active !== false; })
+      .sort(function(a, b) { return (a.coins || 0) - (b.coins || 0); });
+
+    if (packages.length === 0) {
+      wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px 0;">Trenutno ni paketov na voljo.</div>';
+    } else {
+      wrap.innerHTML = '<div class="topup-packages-grid">' +
+        packages.map(function(pkg) {
+          return '<div class="topup-pkg-card" id="pkg_' + pkg.id + '" onclick="selectTopupPkg(\'' + pkg.id + '\')">' +
+            '<div class="topup-pkg-coins">' + pkg.coins + '</div>' +
+            '<div class="topup-pkg-label">🪙 kovancev</div>' +
+            '<div class="topup-pkg-price">' + pkg.coins + ' 🪙</div>' +
+            (pkg.label ? '<div style="font-size:11px;color:var(--muted);margin-top:6px;">' + pkg.label + '</div>' : '') +
+            (pkg.stock > 0 ? '<div style="font-size:11px;color:#ffc107;margin-top:4px;">Ostalo: ' + Math.max(0, pkg.stock - (pkg.sold||0)) + '</div>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      '<button class="topup-order-btn" id="topupOrderBtn" disabled onclick="placeTopupOrder()">IZBERI PAKET</button>';
+    }
+
+    // Load my pending/recent orders
+    if (ordersWrap && currentUser) {
+      const oSnap = await db.collection('topupOrders').where('userId', '==', currentUser.id).get();
+      const myOrders = oSnap.docs
+        .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function(o) { return !o._placeholder; })
+        .sort(function(a, b) {
+          var ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(0);
+          var tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : new Date(0);
+          return tb - ta;
+        })
+        .slice(0, 5);
+
+      if (myOrders.length > 0) {
+        ordersWrap.innerHTML = '<div class="field-label" style="margin-bottom:8px;font-size:13px;">MOJA NAROČILA</div>' +
+          myOrders.map(function(o) {
+            var isDone = o.status === 'done';
+            var date = o.createdAt && o.createdAt.toDate
+              ? o.createdAt.toDate().toLocaleDateString('sl-SI')
+              : '';
+            return '<div class="my-topup-order' + (isDone ? ' done' : '') + '">' +
+              '<div class="topup-order-info">' +
+                '<div class="topup-order-pkg">' + (o.label || '') + ' — ' + o.coins + ' 🪙</div>' +
+                '<div class="topup-order-meta">' + date + '</div>' +
+              '</div>' +
+              (isDone
+                ? '<span class="order-status-done">✅ POTRJENO</span>'
+                : '<span class="order-status-pending">⏳ ČAKA NA POTRDITEV</span>') +
+            '</div>';
+          }).join('');
+      } else {
+        ordersWrap.innerHTML = '';
+      }
+    }
+  } catch(e) {
+    wrap.innerHTML = '<div style="color:#ff4444;font-size:13px;">Napaka pri nalaganju.</div>';
+    console.error(e);
+  }
+}
+
+function selectTopupPkg(pkgId) {
+  document.querySelectorAll('.topup-pkg-card').forEach(function(c) { c.classList.remove('selected'); });
+  var card = document.getElementById('pkg_' + pkgId);
+  if (card) card.classList.add('selected');
+  selectedTopupPkg = pkgId;
+  var btn = document.getElementById('topupOrderBtn');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'NAROČI PAKET ✅';
+  }
+}
+
+async function placeTopupOrder() {
+  if (!selectedTopupPkg || !currentUser) return;
+  var btn = document.getElementById('topupOrderBtn');
+  if (btn) btn.disabled = true;
+
+  try {
+    var pkgDoc = await db.collection('topupPackages').doc(selectedTopupPkg).get();
+    if (!pkgDoc.exists) { showToast('Paket ne obstaja!', true); if(btn) btn.disabled=false; return; }
+    var pkg = Object.assign({ id: pkgDoc.id }, pkgDoc.data());
+
+    // Check stock
+    if (pkg.stock > 0 && (pkg.sold || 0) >= pkg.stock) {
+      showToast('Ta paket je žal razprodan! 😔', true);
+      if(btn) btn.disabled=false;
+      loadTopupPackages();
+      return;
+    }
+
+    // Increment sold count if limited
+    if (pkg.stock > 0) {
+      await db.collection('topupPackages').doc(pkg.id).update({
+        sold: firebase.firestore.FieldValue.increment(1)
+      });
+    }
+
+    await db.collection('topupOrders').add({
+      userId: currentUser.id,
+      userName: currentUser.name,
+      packageId: pkg.id,
+      label: pkg.label || '',
+      coins: pkg.coins,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await sendNotification(currentUser.id, '📦 Naročilo ' + pkg.label + ' je oddano! Ko potrdiš pri adminu, dobiš ' + pkg.coins + ' 🪙');
+
+    showToast('Naročilo oddano! Pokaži adminu potrdilo 💶');
+    selectedTopupPkg = null;
+    document.querySelectorAll('.topup-pkg-card').forEach(function(c) { c.classList.remove('selected'); });
+    if (btn) { btn.disabled = true; btn.textContent = 'IZBERI PAKET'; }
+    loadTopupPackages();
+  } catch(e) {
+    showToast('Napaka pri naročilu!', true);
+    if (btn) btn.disabled = false;
+    console.error(e);
+  }
+}
+
+// ===== ADMIN: TOP-UP PACKAGES =====
+async function loadAdminPackages() {
+  var list = document.getElementById('adminPackagesList');
+  if (!list) return;
+
+  var snap = await db.collection('topupPackages').get();
+  var packages = snap.docs
+    .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+    .filter(function(p) { return !p._placeholder; })
+    .sort(function(a, b) { return (a.coins || 0) - (b.coins || 0); });
+
+  if (packages.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;">Ni paketov. Dodaj prvega zgoraj.</div>';
+    return;
+  }
+
+  list.innerHTML = packages.map(function(pkg) {
+    return '<div class="admin-pkg-row">' +
+      '<div style="flex:1;">' +
+        '<b>' + (pkg.label || '—') + '</b>' +
+        '<span style="color:var(--muted);font-size:13px;margin-left:10px;">' + pkg.coins + ' 🪙</span>' +
+        (pkg.stock > 0 ? '<span style="color:#ffc107;font-size:12px;margin-left:8px;">Zaloga: ' + ((pkg.stock - (pkg.sold||0)) > 0 ? (pkg.stock - (pkg.sold||0)) + ' ostalo' : '❌ razprodano') + '</span>' : '<span style="color:var(--muted);font-size:12px;margin-left:8px;">∞ neomejeno</span>') +
+      '</div>' +
+      '<button class="btn-toggle-stock' + (pkg.active === false ? ' inactive' : '') + '" onclick="toggleTopupPkg(\'' + pkg.id + '\', ' + (pkg.active !== false) + ')">' +
+        (pkg.active !== false ? '✅ AKTIVEN' : '❌ SKRIT') +
+      '</button>' +
+      '<button class="btn-delete-event" style="padding:5px 10px;" onclick="deleteTopupPkg(\'' + pkg.id + '\')">🗑</button>' +
+    '</div>';
+  }).join('');
+}
+
+async function addTopupPackage() {
+  var label = document.getElementById('pkgLabel').value.trim();
+  var coins = parseInt(document.getElementById('pkgCoins').value) || 0;
+  var stock = parseInt(document.getElementById('pkgStock').value) || 0;
+  if (!label || coins <= 0) { showToast('Izpolni ime in kovance!', true); return; }
+
+  await db.collection('topupPackages').add({
+    label: label, coins: coins, stock: stock, sold: 0, active: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  document.getElementById('pkgLabel').value = '';
+  document.getElementById('pkgCoins').value = '';
+  document.getElementById('pkgStock').value = '';
+  showToast('Paket dodan! 🪙');
+  loadAdminPackages();
+}
+
+async function toggleTopupPkg(pkgId, currentlyActive) {
+  await db.collection('topupPackages').doc(pkgId).update({ active: !currentlyActive });
+  loadAdminPackages();
+}
+
+async function deleteTopupPkg(pkgId) {
+  if (!confirm('Izbriši ta paket?')) return;
+  await db.collection('topupPackages').doc(pkgId).delete();
+  showToast('Paket izbrisan.');
+  loadAdminPackages();
+}
+
+// ===== ADMIN: TOP-UP ORDERS =====
+async function loadAdminTopupOrders() {
+  var list = document.getElementById('adminTopupOrdersList');
+  if (!list) return;
+  list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Nalaganje...</div>';
+
+  try {
+    var filterStatus = document.getElementById('topupStatusFilter') ? document.getElementById('topupStatusFilter').value : '';
+    var snap = await db.collection('topupOrders').get();
+    var orders = snap.docs
+      .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+      .filter(function(o) { return !o._placeholder; })
+      .sort(function(a, b) {
+        var ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(0);
+        var tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : new Date(0);
+        return tb - ta;
+      });
+
+    if (filterStatus) orders = orders.filter(function(o) { return (o.status || 'pending') === filterStatus; });
+
+    var total = snap.docs.filter(function(d) { return !d.data()._placeholder; }).length;
+    var pending = snap.docs.filter(function(d) { return !d.data()._placeholder && (d.data().status || 'pending') === 'pending'; }).length;
+
+    var summaryHtml = '<div class="orders-summary" style="margin-bottom:16px;">' +
+      '<div class="orders-summary-stat"><div class="orders-summary-val">' + total + '</div><div class="orders-summary-lbl">SKUPAJ</div></div>' +
+      '<div class="orders-summary-stat"><div class="orders-summary-val" style="color:#ffc107;">' + pending + '</div><div class="orders-summary-lbl">ČAKA</div></div>' +
+
+      '</div>';
+
+    if (orders.length === 0) {
+      list.innerHTML = summaryHtml + '<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px;">Ni naročil.</div>';
+      return;
+    }
+
+    list.innerHTML = summaryHtml + orders.map(function(o) {
+      var isDone = o.status === 'done';
+      var date = o.createdAt && o.createdAt.toDate
+        ? o.createdAt.toDate().toLocaleString('sl-SI', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+        : '—';
+      return '<div class="admin-topup-row' + (isDone ? ' done' : '') + '" data-order-id="' + o.id + '" data-user-id="' + (o.userId || '') + '" data-coins="' + (o.coins || 0) + '" data-label="' + (o.label || '').replace(/"/g, '') + '">' +
+        '<div class="admin-topup-info">' +
+          '<div class="admin-topup-buyer">🐯 ' + (o.userName || '—') + '</div>' +
+          '<div class="admin-topup-pkg">' + (o.label || '—') + ' — ' + o.coins + ' 🪙</div>' +
+          '<div class="admin-topup-meta">' + date + '</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">' +
+          (isDone
+            ? '<span class="order-status-done">✅ POTRJENO</span>'
+            : '<span class="order-status-pending">⏳ ČAKA</span><button class="btn-confirm-topup" onclick="confirmTopupOrder(this)">💰 POTRDI PLAČILO + DODAJ KOVANCE</button>') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="color:#ff4444;font-size:13px;">Napaka pri nalaganju.</div>';
+    console.error(e);
+  }
+}
+
+async function confirmTopupOrder(btn) {
+  var row = btn.closest('[data-order-id]');
+  if (!row) return;
+  var orderId = row.getAttribute('data-order-id');
+  var userId = row.getAttribute('data-user-id');
+  var coins = parseInt(row.getAttribute('data-coins')) || 0;
+  var label = row.getAttribute('data-label');
+
+  if (!confirm('Potrdi plačilo za "' + label + '" in dodaj ' + coins + ' 🪙 na račun?')) return;
+
+  btn.disabled = true;
+  try {
+    // Add coins to user
+    var uSnap = await db.collection('users').doc(userId).get();
+    if (!uSnap.exists) { showToast('Uporabnik ne obstaja!', true); return; }
+    var newCoins = (uSnap.data().coins || 0) + coins;
+    await db.collection('users').doc(userId).update({ coins: newCoins });
+
+    // Mark order as done
+    await db.collection('topupOrders').doc(orderId).update({ status: 'done' });
+
+    // Notify user
+    await sendNotification(userId, '✅ Potrjeno! ' + coins + ' 🪙 je bilo dodano na tvoj račun. Uživaj!');
+
+    // Update navbar if it's current user
+    if (currentUser && currentUser.id === userId) {
+      currentUser.coins = newCoins;
+      updateNavCoins();
+    }
+
+    showToast('Plačilo potrjeno, ' + coins + ' 🪙 dodano! ✅');
+    loadAdminTopupOrders();
+    loadAdminStats();
+  } catch(e) {
+    showToast('Napaka!', true);
+    btn.disabled = false;
     console.error(e);
   }
 }
