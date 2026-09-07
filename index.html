@@ -951,19 +951,77 @@
     <div class="paw-icon">🐯</div>
     <div class="logo-text">TIGERS</div>
     <div class="logo-sub">STAVLJENJE</div>
-    <button class="btn-main" onclick="showNameModal()">ZAČNI STAVITI</button>
+    <button class="btn-main" onclick="showAuthModal('login')">ZAČNI STAVITI</button>
   </div>
 </div>
 
-<!-- Name Modal -->
-<div id="nameModal" class="modal-overlay hidden">
-  <div class="modal">
-    <h2>🐯 VSTOPI</h2>
-    <p>Vpiši svoje ime. Naslednjič bo tvoj profil samodejno naložen.</p>
-    <input type="text" class="input-field" id="nameInput" placeholder="TVOJE IME..." maxlength="30"
-      onkeydown="if(event.key==='Enter') submitName()">
-    <div class="error-msg" id="nameError"></div>
-    <button class="btn-confirm" onclick="submitName()">VSTOPI →</button>
+<!-- Auth Modal: Prijava / Registracija -->
+<div id="authModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:440px;">
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <button id="authTabLoginBtn" class="btn-sm" style="flex:1;padding:10px;text-align:center;" onclick="switchAuthTab('login')">PRIJAVA</button>
+      <button id="authTabRegisterBtn" class="btn-sm" style="flex:1;padding:10px;text-align:center;" onclick="switchAuthTab('register')">REGISTRACIJA</button>
+    </div>
+
+    <!-- Prijava -->
+    <div id="authStepLogin">
+      <h2>🐯 PRIJAVA</h2>
+      <p>Vpiši email in geslo svojega računa.</p>
+      <div style="margin-bottom:12px;">
+        <div class="field-label" style="margin-bottom:6px;">EMAIL</div>
+        <input type="email" class="input-field" id="loginEmail" placeholder="tvoj@email.com" autocomplete="username">
+      </div>
+      <div>
+        <div class="field-label" style="margin-bottom:6px;">GESLO</div>
+        <input type="password" class="input-field" id="loginPass" placeholder="Geslo..." autocomplete="current-password"
+          onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+      <div class="error-msg" id="loginError"></div>
+      <button class="btn-confirm" onclick="doLogin()">PRIJAVI SE →</button>
+      <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="doForgotPassword()">Pozabljeno geslo?</button>
+    </div>
+
+    <!-- Registracija -->
+    <div id="authStepRegister" class="hidden">
+      <h2>🐯 REGISTRACIJA</h2>
+      <p>Ustvari nov račun in izberi svojo skupino.</p>
+      <div style="margin-bottom:12px;">
+        <div class="field-label" style="margin-bottom:6px;">IME (prikazano ostalim)</div>
+        <input type="text" class="input-field" id="regName" placeholder="TVOJE IME..." maxlength="30">
+      </div>
+      <div style="margin-bottom:12px;">
+        <div class="field-label" style="margin-bottom:6px;">EMAIL</div>
+        <input type="email" class="input-field" id="regEmail" placeholder="tvoj@email.com" autocomplete="username">
+      </div>
+      <div style="margin-bottom:12px;">
+        <div class="field-label" style="margin-bottom:6px;">GESLO (vsaj 6 znakov)</div>
+        <input type="password" class="input-field" id="regPass" placeholder="Geslo..." autocomplete="new-password">
+      </div>
+      <div style="margin-bottom:12px;">
+        <div class="field-label" style="margin-bottom:6px;">SKUPINA</div>
+        <select class="resolve-select" id="regGroup" style="width:100%;height:42px;">
+          <option value="">Nalagam skupine...</option>
+        </select>
+      </div>
+      <div class="error-msg" id="registerError"></div>
+      <button class="btn-confirm" onclick="doRegister()">USTVARI RAČUN →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2FA Modal -->
+<div id="twoFAModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:400px;">
+    <h2>📧 POTRDI PRIJAVO</h2>
+    <p>Na <span id="twoFAEmailLabel" style="color:var(--orange);font-weight:700;">tvoj email</span> smo poslali 6-mestno kodo. Vpiši jo spodaj.</p>
+    <input type="text" class="input-field" id="twoFACodeInput" placeholder="000000" maxlength="6" inputmode="numeric"
+      style="text-align:center;font-size:26px;letter-spacing:8px;" onkeydown="if(event.key==='Enter') verify2FACode()">
+    <div class="error-msg" id="twoFAError"></div>
+    <button class="btn-confirm" onclick="verify2FACode()">POTRDI →</button>
+    <div style="display:flex;justify-content:space-between;margin-top:10px;">
+      <button class="btn-sm" onclick="cancelTwoFA()">← Prekliči</button>
+      <button class="btn-sm" id="resendCodeBtn" onclick="resend2FACode()">Ponovno pošlji kodo</button>
+    </div>
   </div>
 </div>
 
@@ -977,7 +1035,9 @@
       <button class="btn-notif" id="notifBtn" onclick="toggleNotifications()">
         🔔<span class="notif-badge hidden" id="notifBadge">0</span>
       </button>
+      <button class="btn-admin hidden" id="managerPanelBtn" onclick="enterManagerPanel()">🎯 MOJA SKUPINA</button>
       <button class="btn-admin" onclick="showAdminLogin()">⚙ ADMIN</button>
+      <button class="btn-sm" onclick="logout()">ODJAVA</button>
     </div>
   </nav>
 
@@ -1198,12 +1258,17 @@
       <button class="admin-tab" onclick="switchTab('tab-stave')">📋 STAVE</button>
       <button class="admin-tab" onclick="switchTab('tab-kovanci')">🪙 KOVANCI</button>
       <button class="admin-tab" onclick="switchTab('tab-igralci')">👥 IGRALCI</button>
+      <button class="admin-tab" id="tab-skupine-btn" style="display:none;" onclick="switchTab('tab-skupine')">🏘️ SKUPINE</button>
       <button class="admin-tab" id="tab-admini-btn" style="display:none;" onclick="switchTab('tab-admini')">🔐 ADMINI</button>
     </div>
 
     <!-- Tab: Nova stava -->
     <div class="admin-tab-content active" id="tab-nova">
       <div class="admin-section">
+        <div class="form-row">
+          <label>SKUPINA</label>
+          <select class="resolve-select" id="newEventGroup" style="width:100%;height:42px;"></select>
+        </div>
         <div class="form-row">
           <label>VPRAŠANJE</label>
           <input type="text" id="newQ" placeholder="Npr: Ali bomo zmagali naslednjo tekmo?">
@@ -1366,6 +1431,30 @@
       </div>
     </div>
 
+    <!-- Tab: Skupine (superadmin only) -->
+    <div class="admin-tab-content" id="tab-skupine">
+      <div class="admin-section">
+        <div class="section-title" style="font-size:22px;margin-bottom:16px;">🏘️ SKUPINE</div>
+
+        <!-- Add group -->
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;">
+          <div class="field-label" style="margin-bottom:12px;">➕ NOVA SKUPINA</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:1;min-width:160px;">
+              <div class="field-label" style="font-size:12px;">IME SKUPINE</div>
+              <input type="text" class="input-field" id="newGroupName" placeholder="npr. Skupina A">
+            </div>
+            <button class="btn-resolve" style="height:42px;" onclick="createGroupAdmin()">+ USTVARI</button>
+          </div>
+        </div>
+
+        <div class="field-label" style="margin-bottom:10px;">OBSTOJEČE SKUPINE</div>
+        <div id="groupsList">
+          <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+        </div>
+      </div>
+    </div>
+
 <!-- Admin Login Modal -->
     <!-- Tab: Admini (superadmin only) -->
     <div class="admin-tab-content" id="tab-admini">
@@ -1491,6 +1580,9 @@
 <!-- Firebase SDK (compat verzija - deluje brez module scope) -->
 <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-auth-compat.js"></script>
+<!-- EmailJS (za pošiljanje 2FA kode po emailu, brez lastnega strežnika) -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
 // ===== GLOBAL STATE =====
@@ -1511,7 +1603,24 @@ var allPlayersCache = [];
 var selectedTopupPkg = null;
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
-var currentAdmin = null; // { id, name, role, permissions: [] }
+var currentAdmin = null; // { id, name, role, permissions: [], groupId? }
+var allGroups = [];
+var pendingUid = null;      // uid, ki čaka na vnos 2FA kode
+var pendingUserData = null; // podatki novega uporabnika, ki čakajo, da se zapišejo po uspešni 2FA (registracija)
+var resendCooldown = 0;
+var resendTimer = null;
+
+// ===== EmailJS nastavitve (2FA po emailu) =====
+// 1) Ustvari brezplačen račun na https://www.emailjs.com
+// 2) Dodaj "Email Service" (npr. poveži svoj Gmail)
+// 3) Ustvari "Email Template" s spremenljivkama {{to_email}} in {{code}}
+// 4) Spodnje 3 vrednosti zamenjaj s svojimi (Account > General za Public Key)
+var EMAILJS_PUBLIC_KEY  = 'TUKAJ_VPISI_EMAILJS_PUBLIC_KEY';
+var EMAILJS_SERVICE_ID  = 'TUKAJ_VPISI_EMAILJS_SERVICE_ID';
+var EMAILJS_TEMPLATE_ID = 'TUKAJ_VPISI_EMAILJS_TEMPLATE_ID';
+if (window.emailjs && EMAILJS_PUBLIC_KEY.indexOf('TUKAJ_VPISI') === -1) {
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+}
 
 // Permission constants
 var PERM = {
@@ -1519,13 +1628,15 @@ var PERM = {
   COINS:    'coins',
   PLAYERS:  'players',
   ADMINS:   'admins',
-  SETTINGS: 'settings'
+  SETTINGS: 'settings',
+  GROUPS:   'groups'
 };
 
 // Role definitions — add new roles here in future
 var ROLES = {
-  superadmin: { label: '👑 Super Admin', permissions: ['events','coins','players','admins','settings'] },
-  event_admin: { label: '🎯 Event Admin', permissions: ['events'] }
+  superadmin: { label: '👑 Super Admin', permissions: ['events','coins','players','admins','settings','groups'] },
+  event_admin: { label: '🎯 Event Admin', permissions: ['events'] },
+  manager: { label: '🧑‍💼 Manager skupine', permissions: ['events'] }
 };
 
 const firebaseConfig = {
@@ -1540,6 +1651,9 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
+// Firebase te obdrži prijavljenega med osvežitvami strani, a 2FA kodo
+// vseeno zahtevamo enkrat na vsako novo sejo brskalnika (glej checkExistingSession spodaj).
 
 // ===== FIREBASE STRUCTURE INIT =====
 // ===== INACTIVITY BONUS =====
@@ -1654,6 +1768,20 @@ async function ensureFirebaseStructure() {
       await adminsPh.set({ name:'__init__', password:'__init__', role:'superadmin', permissions:[], _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
     }
 
+    // Groups collection (skupine)
+    const groupsPh = db.collection('groups').doc('_init_');
+    const groupsPhSnap = await groupsPh.get();
+    if (!groupsPhSnap.exists) {
+      await groupsPh.set({ name:'__init__', managerId:null, managerName:null, active:false, _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    // 2FA codes collection
+    const tfaPh = db.collection('twoFactorCodes').doc('_init_');
+    const tfaPhSnap = await tfaPh.get();
+    if (!tfaPhSnap.exists) {
+      await tfaPh.set({ codeHash:'__init__', expiresAt:new Date(0), attempts:0, _placeholder:true });
+    }
+
     console.log('✅ Firebase struktura OK');
   } catch(e) {
     console.warn('Firebase init opozorilo:', e.message);
@@ -1696,44 +1824,267 @@ function timeLeft(endsAt) {
   return `${h}h ${m}m`;
 }
 
-// ===== LANDING =====
-function showNameModal() {
-  document.getElementById('nameModal').classList.remove('hidden');
-  setTimeout(() => document.getElementById('nameInput').focus(), 100);
+// ===== LANDING / AUTH (Firebase email+geslo + 2FA po emailu) =====
+function showAuthModal(tab) {
+  document.getElementById('authModal').classList.remove('hidden');
+  switchAuthTab(tab || 'login');
 }
 
-async function submitName() {
-  const name = document.getElementById('nameInput').value.trim().toUpperCase();
-  if (!name || name.length < 2) {
-    document.getElementById('nameError').textContent = 'Ime mora imeti vsaj 2 znaka!';
-    return;
-  }
-  document.getElementById('nameError').textContent = '';
+function closeAuthModal() {
+  document.getElementById('authModal').classList.add('hidden');
+}
 
-  const userId = name.toLowerCase().replace(/\s+/g, '_');
-  const userRef = db.collection('users').doc(userId);
-  const snap = await userRef.get();
+function switchAuthTab(tab) {
+  var isLogin = tab === 'login';
+  document.getElementById('authStepLogin').classList.toggle('hidden', !isLogin);
+  document.getElementById('authStepRegister').classList.toggle('hidden', isLogin);
+  document.getElementById('authTabLoginBtn').style.borderColor = isLogin ? 'var(--orange)' : 'var(--border)';
+  document.getElementById('authTabLoginBtn').style.color = isLogin ? 'var(--orange)' : 'var(--text)';
+  document.getElementById('authTabRegisterBtn').style.borderColor = !isLogin ? 'var(--orange)' : 'var(--border)';
+  document.getElementById('authTabRegisterBtn').style.color = !isLogin ? 'var(--orange)' : 'var(--text)';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('registerError').textContent = '';
+  if (!isLogin) loadGroupsDropdown();
+}
 
-  if (snap.exists) {
-    currentUser = Object.assign({ id: userId }, snap.data());
-    var inactBonus = await checkInactivityBonus(userId);
-    if (inactBonus > 0) {
-      currentUser.coins = (currentUser.coins || 0) + inactBonus;
-      showToast('Dobrodošel nazaj! +' + inactBonus + ' 🪙 bonus za vrnitev!');
-    } else {
-      showToast('Dobrodošel nazaj, ' + currentUser.name + '! 🐯');
+async function loadGroupsDropdown() {
+  var sel = document.getElementById('regGroup');
+  sel.innerHTML = '<option value="">Nalagam skupine...</option>';
+  try {
+    var snap = await db.collection('groups').where('active', '==', true).get();
+    var groups = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }).filter(function(g) { return !g._placeholder; });
+    if (groups.length === 0) {
+      sel.innerHTML = '<option value="">Ni še odprtih skupin — vprašaj admina</option>';
+      return;
     }
-  } else {
-    const userData = { name, coins: STARTING_COINS, createdAt: firebase.firestore.FieldValue.serverTimestamp(), totalBets: 0, wins: 0, lastBonusDate: null };
-    await userRef.set(userData);
-    currentUser = { id: userId, name, coins: STARTING_COINS, totalBets: 0, wins: 0, lastBonusDate: null };
-    showToast('Dobrodošel, ' + name + '! Prejel si ' + STARTING_COINS + ' kovancev! 🐯');
+    sel.innerHTML = '<option value="">— izberi skupino —</option>' +
+      groups.map(function(g) { return '<option value="' + g.id + '">' + g.name + '</option>'; }).join('');
+  } catch(e) {
+    sel.innerHTML = '<option value="">Napaka pri nalaganju skupin</option>';
+    console.error(e);
   }
+}
 
-  document.getElementById('nameModal').classList.add('hidden');
+async function doRegister() {
+  var name = document.getElementById('regName').value.trim().toUpperCase();
+  var email = document.getElementById('regEmail').value.trim();
+  var pass = document.getElementById('regPass').value;
+  var groupId = document.getElementById('regGroup').value;
+  var errEl = document.getElementById('registerError');
+  errEl.textContent = '';
+
+  if (!name || name.length < 2) { errEl.textContent = 'Ime mora imeti vsaj 2 znaka!'; return; }
+  if (!email) { errEl.textContent = 'Vpiši email!'; return; }
+  if (!pass || pass.length < 6) { errEl.textContent = 'Geslo mora imeti vsaj 6 znakov!'; return; }
+  if (!groupId) { errEl.textContent = 'Izberi skupino!'; return; }
+
+  try {
+    var cred = await auth.createUserWithEmailAndPassword(email, pass);
+    var uid = cred.user.uid;
+    var groupSnap = await db.collection('groups').doc(groupId).get();
+    var groupName = groupSnap.exists ? groupSnap.data().name : '—';
+
+    var userData = {
+      name: name, email: email, groupId: groupId, groupName: groupName,
+      role: 'member', coins: STARTING_COINS,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      totalBets: 0, wins: 0, lastBonusDate: null
+    };
+    await db.collection('users').doc(uid).set(userData);
+
+    closeAuthModal();
+    beginTwoFactor(uid, email);
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = friendlyAuthError(e);
+  }
+}
+
+async function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var pass = document.getElementById('loginPass').value;
+  var errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Vpiši email in geslo!'; return; }
+
+  try {
+    var cred = await auth.signInWithEmailAndPassword(email, pass);
+    closeAuthModal();
+    beginTwoFactor(cred.user.uid, email);
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = friendlyAuthError(e);
+  }
+}
+
+async function doForgotPassword() {
+  var email = document.getElementById('loginEmail').value.trim();
+  if (!email) { document.getElementById('loginError').textContent = 'Najprej vpiši svoj email zgoraj.'; return; }
+  try {
+    await auth.sendPasswordResetEmail(email);
+    showToast('Povezava za ponastavitev gesla poslana na ' + email + ' 📧');
+  } catch(e) {
+    console.error(e);
+    document.getElementById('loginError').textContent = friendlyAuthError(e);
+  }
+}
+
+function friendlyAuthError(e) {
+  var map = {
+    'auth/email-already-in-use': 'Ta email je že registriran — prijavi se.',
+    'auth/invalid-email': 'Email ni veljaven.',
+    'auth/weak-password': 'Geslo je prešibko (vsaj 6 znakov).',
+    'auth/user-not-found': 'Napačen email ali geslo.',
+    'auth/wrong-password': 'Napačen email ali geslo.',
+    'auth/invalid-credential': 'Napačen email ali geslo.',
+    'auth/too-many-requests': 'Preveč poskusov — poskusi kasneje.'
+  };
+  return map[e.code] || ('Napaka: ' + (e.message || e.code || e));
+}
+
+// ===== 2FA PO EMAILU =====
+async function sha256Hex(str) {
+  var enc = new TextEncoder().encode(str);
+  var buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+function beginTwoFactor(uid, email) {
+  pendingUid = uid;
+  document.getElementById('twoFAEmailLabel').textContent = email;
+  document.getElementById('twoFACodeInput').value = '';
+  document.getElementById('twoFAError').textContent = '';
+  document.getElementById('twoFAModal').classList.remove('hidden');
+  send2FACode(uid, email);
+  startResendCooldown();
+}
+
+async function send2FACode(uid, email) {
+  try {
+    var code = String(Math.floor(100000 + Math.random() * 900000));
+    var codeHash = await sha256Hex(code);
+    var expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await db.collection('twoFactorCodes').doc(uid).set({ codeHash: codeHash, expiresAt: expiresAt, attempts: 0 });
+
+    var emailjsReady = window.emailjs && EMAILJS_PUBLIC_KEY.indexOf('TUKAJ_VPISI') === -1;
+    if (emailjsReady) {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { to_email: email, code: code });
+    } else {
+      console.warn('⚠️ EmailJS ni nastavljen — 2FA koda (SAMO ZA RAZVOJ): ' + code);
+      showToast('EmailJS ni nastavljen — koda je v konzoli (F12): ' + code, true);
+    }
+  } catch(e) {
+    console.error('2FA napaka pri pošiljanju:', e);
+    showToast('Napaka pri pošiljanju kode!', true);
+  }
+}
+
+function startResendCooldown() {
+  resendCooldown = 30;
+  var btn = document.getElementById('resendCodeBtn');
+  btn.disabled = true;
+  if (resendTimer) clearInterval(resendTimer);
+  function tick() {
+    btn.textContent = 'Ponovno pošlji kodo (' + resendCooldown + 's)';
+    resendCooldown--;
+    if (resendCooldown < 0) {
+      clearInterval(resendTimer);
+      btn.disabled = false;
+      btn.textContent = 'Ponovno pošlji kodo';
+    }
+  }
+  tick();
+  resendTimer = setInterval(tick, 1000);
+}
+
+async function resend2FACode() {
+  if (!pendingUid) return;
+  var email = document.getElementById('twoFAEmailLabel').textContent;
+  await send2FACode(pendingUid, email);
+  startResendCooldown();
+  showToast('Nova koda poslana! 📧');
+}
+
+async function verify2FACode() {
+  var input = document.getElementById('twoFACodeInput').value.trim();
+  var errEl = document.getElementById('twoFAError');
+  if (!pendingUid) return;
+  if (!/^\d{6}$/.test(input)) { errEl.textContent = 'Vpiši 6-mestno kodo!'; return; }
+
+  try {
+    var ref = db.collection('twoFactorCodes').doc(pendingUid);
+    var snap = await ref.get();
+    if (!snap.exists) { errEl.textContent = 'Koda je potekla. Zahtevaj novo.'; return; }
+    var data = snap.data();
+    var expiresAt = data.expiresAt && data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt);
+    if (Date.now() > expiresAt.getTime()) { errEl.textContent = 'Koda je potekla. Zahtevaj novo.'; return; }
+    if ((data.attempts || 0) >= 5) { errEl.textContent = 'Preveč napačnih poskusov. Zahtevaj novo kodo.'; return; }
+
+    var inputHash = await sha256Hex(input);
+    if (inputHash !== data.codeHash) {
+      await ref.update({ attempts: (data.attempts || 0) + 1 });
+      errEl.textContent = 'Napačna koda! Poskusov še: ' + (4 - (data.attempts || 0));
+      return;
+    }
+
+    await ref.delete();
+    sessionStorage.setItem('tigers2faVerified_' + pendingUid, '1');
+    document.getElementById('twoFAModal').classList.add('hidden');
+    await loadCurrentUserAndEnter(pendingUid);
+    pendingUid = null;
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = 'Napaka pri preverjanju kode.';
+  }
+}
+
+function cancelTwoFA() {
+  document.getElementById('twoFAModal').classList.add('hidden');
+  if (resendTimer) clearInterval(resendTimer);
+  pendingUid = null;
+  auth.signOut();
+  setScreen('landing');
+}
+
+async function loadCurrentUserAndEnter(uid) {
+  var snap = await db.collection('users').doc(uid).get();
+  if (!snap.exists) { showToast('Uporabniški profil ni bil najden!', true); return; }
+  currentUser = Object.assign({ id: uid }, snap.data());
+  var inactBonus = await checkInactivityBonus(uid);
+  if (inactBonus > 0) {
+    currentUser.coins = (currentUser.coins || 0) + inactBonus;
+    showToast('Dobrodošel nazaj! +' + inactBonus + ' 🪙 bonus za vrnitev!');
+  } else {
+    showToast('Dobrodošel, ' + currentUser.name + '! 🐯');
+  }
   checkDailyBonus();
   initHome();
 }
+
+function logout() {
+  if (unsubEvents) unsubEvents();
+  if (unsubUser) unsubUser();
+  if (notifUnsub) notifUnsub();
+  if (currentUser) sessionStorage.removeItem('tigers2faVerified_' + currentUser.id);
+  auth.signOut();
+  currentUser = null;
+  currentAdmin = null;
+  setScreen('landing');
+}
+
+// Ob nalaganju strani: če je uporabnik že prijavljen v tej seji brskalnika IN je
+// to sejo že potrdil z 2FA kodo, ga spustimo naravnost naprej. Če Firebase še ve
+// zanj (ostal prijavljen iz prejšnje seje), a te seje ni potrdil z 2FA, zahtevamo
+// novo kodo, preden mu pokažemo karkoli.
+auth.onAuthStateChanged(function(user) {
+  if (!user) return;
+  if (currentUser) return; // že obdelano (ravno prijavljen skozi doLogin/doRegister)
+  if (sessionStorage.getItem('tigers2faVerified_' + user.uid) === '1') {
+    loadCurrentUserAndEnter(user.uid);
+  } else {
+    beginTwoFactor(user.uid, user.email);
+  }
+});
 
 // ===== DAILY BONUS =====
 function checkDailyBonus() {
@@ -1783,11 +2134,19 @@ async function initHome() {
   updateNavCoins();
   initNotifications();
 
+  document.getElementById('managerPanelBtn').classList.toggle('hidden', currentUser.role !== 'manager');
+
   if (unsubEvents) unsubEvents();
-  unsubEvents = db.collection('events').orderBy('createdAt', 'desc').onSnapshot(snap => {
-    allEvents = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(e => !e._placeholder);
-    renderEvents();
-  });
+  unsubEvents = db.collection('events')
+    .where('groupId', '==', currentUser.groupId)
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(snap => {
+      allEvents = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(e => !e._placeholder);
+      renderEvents();
+    }, err => {
+      console.error('Napaka pri nalaganju stav (mogoče manjka Firestore index):', err);
+      showToast('Napaka pri nalaganju stav — poglej konzolo (F12)', true);
+    });
 
   if (unsubUser) unsubUser();
   unsubUser = db.collection('users').doc(currentUser.id).onSnapshot(snap => {
@@ -1803,8 +2162,9 @@ function updateNavCoins() {
   const c = currentUser?.coins ?? 0;
   document.getElementById('coinsDisplay').textContent = c;
   document.getElementById('coinsDisplay2').textContent = c;
-  document.getElementById('navUsername').textContent = currentUser?.name ?? '';
-  document.getElementById('navUsername2').textContent = currentUser?.name ?? '';
+  const label = (currentUser?.name ?? '') + (currentUser?.groupName ? ' · ' + currentUser.groupName : '');
+  document.getElementById('navUsername').textContent = label;
+  document.getElementById('navUsername2').textContent = label;
 }
 
 function renderEvents() {
@@ -1883,7 +2243,7 @@ async function loadLeaderboard() {
   const wrap = document.getElementById('leaderboardWrap');
   wrap.innerHTML = `<div style="color:var(--muted);text-align:center;padding:40px 0;">Nalaganje...</div>`;
   try {
-    const snap = await db.collection('users').get();
+    const snap = await db.collection('users').where('groupId', '==', currentUser.groupId).get();
     const users = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .filter(u => !u._placeholder && u.name)
@@ -2085,6 +2445,7 @@ async function placeBet() {
       userId: currentUser.id,
       userName: currentUser.name,
       eventId: currentEventId,
+      groupId: ev.groupId || currentUser.groupId,
       question: ev.question,
       option: selectedOption,
       amount,
@@ -2178,22 +2539,39 @@ async function tryAdminLogin() {
   }
 }
 
+// Manager skupine vstopi v (omejen) admin panel brez ločene admin prijave —
+// uporabi svojo že preverjeno Firebase Auth + 2FA sejo.
+function enterManagerPanel() {
+  if (!currentUser || currentUser.role !== 'manager') return;
+  currentAdmin = {
+    id: currentUser.id,
+    name: currentUser.name,
+    role: 'manager',
+    permissions: ROLES.manager.permissions,
+    groupId: currentUser.groupId,
+    groupName: currentUser.groupName
+  };
+  enterAdmin();
+}
+
 async function enterAdmin() {
   setScreen('admin');
   allUsers = [];
 
   // Show admin info
   var roleInfo = ROLES[currentAdmin.role] || { label: currentAdmin.role };
-  document.getElementById('adminRoleBadge').textContent = roleInfo.label;
+  document.getElementById('adminRoleBadge').textContent = roleInfo.label + (currentAdmin.groupName ? ' — ' + currentAdmin.groupName : '');
   document.getElementById('adminNameDisplay').textContent = currentAdmin.name;
 
   // Show/hide tabs based on permissions
   var tabAdminiBtn = document.getElementById('tab-admini-btn');
   if (tabAdminiBtn) tabAdminiBtn.style.display = hasPerm(PERM.ADMINS) ? '' : 'none';
+  var tabSkupineBtn = document.getElementById('tab-skupine-btn');
+  if (tabSkupineBtn) tabSkupineBtn.style.display = hasPerm(PERM.GROUPS) ? '' : 'none';
 
   // Hide tabs based on role
   var allTabBtns = document.querySelectorAll('.admin-tab');
-  // tab order: nova(0), stave(1), kovanci(2), igralci(3), admini(4)
+  // tab order: nova(0), stave(1), kovanci(2), igralci(3), skupine(4), admini(5)
   if (!hasPerm(PERM.EVENTS)) {
     allTabBtns[0] && (allTabBtns[0].style.display = 'none');
     allTabBtns[1] && (allTabBtns[1].style.display = 'none');
@@ -2205,10 +2583,13 @@ async function enterAdmin() {
     allTabBtns[3] && (allTabBtns[3].style.display = 'none');
   }
 
+  if (hasPerm(PERM.EVENTS)) loadEventGroupOptions();
+
   // Go to first available tab
   if (hasPerm(PERM.EVENTS)) switchTab('tab-nova');
   else if (hasPerm(PERM.COINS)) switchTab('tab-kovanci');
   else if (hasPerm(PERM.PLAYERS)) switchTab('tab-igralci');
+  else if (hasPerm(PERM.GROUPS)) switchTab('tab-skupine');
   else if (hasPerm(PERM.ADMINS)) switchTab('tab-admini');
 
   loadAdminStats();
@@ -2221,13 +2602,14 @@ function switchTab(tabId) {
   var tabEl = document.getElementById(tabId);
   if (tabEl) tabEl.classList.add('active');
   // Activate button
-  var tabIds = ['tab-nova','tab-stave','tab-kovanci','tab-igralci','tab-admini'];
+  var tabIds = ['tab-nova','tab-stave','tab-kovanci','tab-igralci','tab-skupine','tab-admini'];
   var idx = tabIds.indexOf(tabId);
   var btns = document.querySelectorAll('.admin-tab');
   if (btns[idx]) btns[idx].classList.add('active');
   if (tabId === 'tab-kovanci') { loadAdminPackages(); loadAdminTopupOrders(); }
   if (tabId === 'tab-igralci') loadAllPlayers();
   if (tabId === 'tab-admini') loadAdminsList();
+  if (tabId === 'tab-skupine') loadAdminGroups();
   window.scrollTo(0, 0);
 }
 
@@ -2421,11 +2803,143 @@ async function deleteAdmin(adminId, adminName) {
   loadAdminsList();
 }
 
+// ===== SKUPINE MANAGEMENT (samo superadmin) =====
+async function loadAdminGroups() {
+  var list = document.getElementById('groupsList');
+  if (!list) return;
+  list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Nalaganje...</div>';
+
+  var snap = await db.collection('groups').get();
+  allGroups = snap.docs
+    .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+    .filter(function(g) { return !g._placeholder; })
+    .sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+
+  if (allGroups.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Ni še skupin. Dodaj prvo zgoraj.</div>';
+    return;
+  }
+
+  list.innerHTML = allGroups.map(function(g) {
+    return '<div class="admin-pkg-row" style="flex-direction:column;align-items:stretch;gap:10px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">' +
+        '<b style="font-size:16px;">' + g.name + '</b>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button class="btn-toggle-stock' + (g.active === false ? ' inactive' : '') + '" onclick="toggleGroupActive(\'' + g.id + '\', ' + (g.active !== false) + ')">' +
+            (g.active !== false ? '✅ AKTIVNA' : '❌ SKRITA') +
+          '</button>' +
+          '<button class="btn-delete-event" style="padding:5px 10px;" onclick="deleteGroupAdmin(\'' + g.id + '\')">🗑</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+        '<span>Manager: <b style="color:var(--text);">' + (g.managerName || 'brez managerja') + '</b></span>' +
+        (g.managerId ? '<button class="btn-sm" onclick="removeManager(\'' + g.id + '\')">Odstrani managerja</button>' : '') +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<input type="text" class="input-field" id="mgrSearch_' + g.id + '" placeholder="Email ali ime obstoječega uporabnika..." style="flex:1;min-width:180px;margin-bottom:0;">' +
+        '<button class="btn-resolve" onclick="assignManagerPrompt(\'' + g.id + '\')">👑 NASTAVI ZA MANAGERJA</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function createGroupAdmin() {
+  var name = document.getElementById('newGroupName').value.trim();
+  if (!name) { showToast('Vpiši ime skupine!', true); return; }
+
+  await db.collection('groups').add({
+    name: name, managerId: null, managerName: null, managerEmail: null,
+    active: true, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  document.getElementById('newGroupName').value = '';
+  showToast('Skupina "' + name + '" ustvarjena! 🏘️');
+  loadAdminGroups();
+}
+
+async function toggleGroupActive(groupId, currentlyActive) {
+  await db.collection('groups').doc(groupId).update({ active: !currentlyActive });
+  loadAdminGroups();
+}
+
+async function deleteGroupAdmin(groupId) {
+  if (!confirm('Izbriši to skupino? Igralci in stave, ki ji pripadajo, ostanejo, a skupina ne bo več na voljo za registracijo.')) return;
+  await db.collection('groups').doc(groupId).delete();
+  showToast('Skupina izbrisana.');
+  loadAdminGroups();
+}
+
+async function assignManagerPrompt(groupId) {
+  var input = document.getElementById('mgrSearch_' + groupId).value.trim();
+  if (!input) { showToast('Vpiši email ali ime uporabnika!', true); return; }
+
+  try {
+    var found = null;
+    var byEmail = await db.collection('users').where('email', '==', input).get();
+    var emailMatches = byEmail.docs.filter(function(d) { return !d.data()._placeholder; });
+    if (emailMatches.length > 0) {
+      found = emailMatches[0];
+    } else {
+      var byName = await db.collection('users').where('name', '==', input.toUpperCase()).get();
+      var nameMatches = byName.docs.filter(function(d) { return !d.data()._placeholder; });
+      if (nameMatches.length > 0) found = nameMatches[0];
+    }
+
+    if (!found) { showToast('Uporabnik ni najden (poskusi z natančnim emailom).', true); return; }
+
+    await assignManager(groupId, found);
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri iskanju uporabnika!', true);
+  }
+}
+
+async function assignManager(groupId, userDoc) {
+  var userData = userDoc.data();
+  var groupSnap = await db.collection('groups').doc(groupId).get();
+  var group = groupSnap.data();
+
+  // Če je skupina že imela drugega managerja, ga degradiraj nazaj na navadnega člana
+  if (group.managerId && group.managerId !== userDoc.id) {
+    await db.collection('users').doc(group.managerId).update({ role: 'member' });
+  }
+
+  await db.collection('users').doc(userDoc.id).update({
+    role: 'manager', groupId: groupId, groupName: group.name
+  });
+  await db.collection('groups').doc(groupId).update({
+    managerId: userDoc.id, managerName: userData.name, managerEmail: userData.email || null
+  });
+
+  showToast(userData.name + ' je zdaj manager skupine "' + group.name + '"! 👑');
+  loadAdminGroups();
+}
+
+async function removeManager(groupId) {
+  var groupSnap = await db.collection('groups').doc(groupId).get();
+  var group = groupSnap.data();
+  if (!group || !group.managerId) return;
+  if (!confirm('Odstrani ' + group.managerName + ' kot managerja skupine "' + group.name + '"?')) return;
+
+  await db.collection('users').doc(group.managerId).update({ role: 'member' });
+  await db.collection('groups').doc(groupId).update({ managerId: null, managerName: null, managerEmail: null });
+
+  showToast('Manager odstranjen.');
+  loadAdminGroups();
+}
+
 async function loadAdminStats() {
   try {
-    const users = await db.collection('users').get();
-    const events = await db.collection('events').get();
-    const bets = await db.collection('bets').get();
+    const isManager = currentAdmin && currentAdmin.role === 'manager';
+    const users = isManager
+      ? await db.collection('users').where('groupId', '==', currentAdmin.groupId).get()
+      : await db.collection('users').get();
+    const events = isManager
+      ? await db.collection('events').where('groupId', '==', currentAdmin.groupId).get()
+      : await db.collection('events').get();
+    const bets = isManager
+      ? await db.collection('bets').where('groupId', '==', currentAdmin.groupId).get()
+      : await db.collection('bets').get();
     document.getElementById('statUsers').textContent = users.size;
     document.getElementById('statEvents').textContent = events.docs.filter(d => !d.data()._placeholder && !d.data().resolved).length;
     document.getElementById('statBets').textContent = bets.docs.filter(d => !d.data()._placeholder).length;
@@ -2434,7 +2948,10 @@ async function loadAdminStats() {
 
 async function loadAdminEvents() {
   const list = document.getElementById('adminEventsList');
-  const snap = await db.collection('events').orderBy('createdAt', 'desc').get();
+  const isManager = currentAdmin && currentAdmin.role === 'manager';
+  const snap = isManager
+    ? await db.collection('events').where('groupId', '==', currentAdmin.groupId).orderBy('createdAt', 'desc').get()
+    : await db.collection('events').orderBy('createdAt', 'desc').get();
   const events = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(e => !e._placeholder);
   allEvents = [...allEvents.filter(e => !events.find(ne => ne.id === e.id)), ...events];
 
@@ -2449,7 +2966,7 @@ async function loadAdminEvents() {
     return `
     <div class="admin-event-item">
       <div>
-        <div class="admin-event-q">${e.question}</div>
+        <div class="admin-event-q">${e.question} ${e.groupName ? `<span style="font-size:11px;color:var(--orange);border:1px solid var(--orange);border-radius:5px;padding:1px 8px;margin-left:6px;">${e.groupName}</span>` : ''}</div>
         <div class="admin-event-opts">Opcije: ${opts.join(' / ')} · Stavkov: ${e.totalBets||0} · ⏱ ${timeLeft(e.endsAt)}</div>
         ${e.resolved ? `<div style="margin-top:6px;"><span class="resolved-tag">✓ REŠENO: ${e.winner}</span></div>` : ''}
       </div>
@@ -2469,19 +2986,42 @@ async function loadAdminEvents() {
   }).join('');
 }
 
+async function loadEventGroupOptions() {
+  var sel = document.getElementById('newEventGroup');
+  if (!sel) return;
+  var snap = await db.collection('groups').get();
+  allGroups = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }).filter(function(g) { return !g._placeholder; });
+
+  if (currentAdmin && currentAdmin.role === 'manager') {
+    sel.innerHTML = '<option value="' + currentAdmin.groupId + '">' + (currentAdmin.groupName || 'MOJA SKUPINA') + '</option>';
+    sel.disabled = true;
+  } else {
+    sel.disabled = false;
+    sel.innerHTML = allGroups.length
+      ? allGroups.map(function(g) { return '<option value="' + g.id + '">' + g.name + (g.active === false ? ' (skrita)' : '') + '</option>'; }).join('')
+      : '<option value="">Ni skupin — ustvari jih v zavihku SKUPINE</option>';
+  }
+}
+
 async function ustvariStavo() {
   const q = document.getElementById('newQ').value.trim();
   const o1 = document.getElementById('newOpt1').value.trim();
   const o2 = document.getElementById('newOpt2').value.trim();
   const o3 = document.getElementById('newOpt3').value.trim();
   const dur = parseInt(document.getElementById('newDuration').value) || 24;
+  const groupId = document.getElementById('newEventGroup').value;
 
   if (!q || !o1 || !o2) { showToast('Vpiši vprašanje in vsaj 2 odgovora!', true); return; }
+  if (!groupId) { showToast('Izberi skupino!', true); return; }
+
+  const groupObj = allGroups.find(g => g.id === groupId);
+  const groupName = groupObj ? groupObj.name : (currentAdmin.groupName || '');
 
   const endsAt = new Date(Date.now() + dur * 3600 * 1000);
   await db.collection('events').add({
     question: q, opt1: o1, opt2: o2,
     opt3: o3 || null,
+    groupId: groupId, groupName: groupName,
     endsAt, resolved: false, winner: null,
     bets: {}, totalBets: 0,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2549,7 +3089,7 @@ async function loadArchive() {
   const wrap = document.getElementById('archiveWrap');
   wrap.innerHTML = `<div style="color:var(--muted);text-align:center;padding:40px 0;">Nalaganje...</div>`;
   try {
-    const snap = await db.collection('events').get();
+    const snap = await db.collection('events').where('groupId', '==', currentUser.groupId).get();
     const resolved = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .filter(e => !e._placeholder && e.resolved)
