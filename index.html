@@ -1163,6 +1163,7 @@
   <div class="detail-content">
     <button class="btn-back" onclick="showHome()">← NAZAJ</button>
     <div class="detail-question" id="detailQuestion">—</div>
+    <div id="detailCreator" style="font-size:13px;color:var(--muted);margin-top:-16px;margin-bottom:16px;"></div>
 
     <!-- Chart -->
     <div class="chart-wrap">
@@ -1286,9 +1287,19 @@
             <input type="text" id="newOpt3" placeholder="Npr: Remi">
           </div>
           <div class="form-row">
-            <label>AKTIVNO DO (ure)</label>
-            <input type="number" id="newDuration" placeholder="24" min="1" value="24">
+            <label>AKTIVNO DO</label>
+            <input type="datetime-local" id="newEndsAt">
           </div>
+        </div>
+        <div class="form-row">
+          <label>IZKLJUČENI IGRALCI (ne morejo staviti na to stavo)</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="newEventExcludeInput" placeholder="Ime ali email igralca..." style="flex:1;"
+              onkeydown="if(event.key==='Enter'){event.preventDefault(); addExcludedUser();}">
+            <button class="btn-sm" type="button" style="white-space:nowrap;padding:0 16px;" onclick="addExcludedUser()">+ DODAJ</button>
+          </div>
+          <div id="newEventExcludeChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px;">Uporabno npr. za stave o igralcu samem (da ne stavi na svoj rezultat).</div>
         </div>
         <button class="btn-create" onclick="ustvariStavo()">USTVARI STAVO</button>
       </div>
@@ -2189,9 +2200,10 @@ function renderEvents() {
   grid.innerHTML = active.map(e => {
     const opts = [e.opt1, e.opt2, e.opt3].filter(Boolean);
     const total = opts.reduce((s, o) => s + (e.bets?.[o] || 0), 0);
+    const isExcluded = Array.isArray(e.excludedUserIds) && currentUser && e.excludedUserIds.indexOf(currentUser.id) !== -1;
     return `
     <div class="event-card" onclick="openEvent('${e.id}')">
-      <div class="event-q">${e.question}</div>
+      <div class="event-q">${e.question} ${isExcluded ? '<span style="font-size:11px;color:#ef5350;border:1px solid #ef5350;border-radius:5px;padding:1px 8px;margin-left:6px;">🚫 NE MOREŠ STAVITI</span>' : ''}</div>
       <div class="event-options">
         ${opts.map(o => `<span class="event-opt-pill">${o}</span>`).join('')}
       </div>
@@ -2322,6 +2334,7 @@ async function openEvent(id) {
   if (!ev) return;
 
   document.getElementById('detailQuestion').textContent = ev.question;
+  document.getElementById('detailCreator').textContent = ev.createdByName ? ('👤 Objavil: ' + ev.createdByName) : '';
   setScreen('event-detail');
   loadComments(id);
 
@@ -2333,8 +2346,16 @@ async function openEvent(id) {
   const betSnap = await db.collection('bets').doc(`${currentUser.id}_${id}`).get();
   const userBetDiv = document.getElementById('userBetInfo');
   const placeBtn = document.getElementById('placeBetBtn');
+  const isExcluded = Array.isArray(ev.excludedUserIds) && ev.excludedUserIds.indexOf(currentUser.id) !== -1;
 
-  if (betSnap.exists) {
+  if (isExcluded) {
+    userBetDiv.innerHTML = `🚫 Na to stavo ne moreš staviti.`;
+    userBetDiv.classList.remove('hidden');
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+    document.getElementById('betAmount').disabled = true;
+    placeBtn.disabled = true;
+    placeBtn.textContent = 'NE MOREŠ STAVITI';
+  } else if (betSnap.exists) {
     const bd = betSnap.data();
     userBetDiv.innerHTML = `Tvoja stava: <span>${bd.option}</span> — <span>${bd.amount} 🪙</span>`;
     userBetDiv.classList.remove('hidden');
@@ -2342,6 +2363,8 @@ async function openEvent(id) {
     placeBtn.textContent = 'ŽE SI STAVIL';
   } else {
     userBetDiv.classList.add('hidden');
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = false);
+    document.getElementById('betAmount').disabled = false;
     placeBtn.disabled = false;
     placeBtn.textContent = 'POSTAVI STAVO';
   }
@@ -2442,6 +2465,10 @@ async function placeBet() {
 
   const ev = allEvents.find(e => e.id === currentEventId);
   if (!ev) return;
+  if (Array.isArray(ev.excludedUserIds) && ev.excludedUserIds.indexOf(currentUser.id) !== -1) {
+    showToast('Na to stavo ne moreš staviti!', true);
+    return;
+  }
 
   try {
     const betId = `${currentUser.id}_${currentEventId}`;
@@ -2917,7 +2944,8 @@ async function loadAdminEvents() {
     <div class="admin-event-item">
       <div>
         <div class="admin-event-q">${e.question} ${e.groupName ? `<span style="font-size:11px;color:var(--orange);border:1px solid var(--orange);border-radius:5px;padding:1px 8px;margin-left:6px;">${e.groupName}</span>` : ''}</div>
-        <div class="admin-event-opts">Opcije: ${opts.join(' / ')} · Stavkov: ${e.totalBets||0} · ⏱ ${timeLeft(e.endsAt)}</div>
+        <div class="admin-event-opts">Opcije: ${opts.join(' / ')} · Stavkov: ${e.totalBets||0} · ⏱ ${timeLeft(e.endsAt)}${e.createdByName ? ` · 👤 ${e.createdByName}` : ''}</div>
+        ${e.excludedUserNames && e.excludedUserNames.length ? `<div style="font-size:12px;color:#ef5350;margin-top:4px;">🚫 Ne morejo staviti: ${e.excludedUserNames.join(', ')}</div>` : ''}
         ${e.resolved ? `<div style="margin-top:6px;"><span class="resolved-tag">✓ REŠENO: ${e.winner}</span></div>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">
@@ -2951,6 +2979,66 @@ async function loadEventGroupOptions() {
       ? allGroups.map(function(g) { return '<option value="' + g.id + '">' + g.name + (g.active === false ? ' (skrita)' : '') + '</option>'; }).join('')
       : '<option value="">Ni skupin — ustvari jih v zavihku SKUPINE</option>';
   }
+
+  var endsAtEl = document.getElementById('newEndsAt');
+  if (endsAtEl && !endsAtEl.value) endsAtEl.value = defaultEndsAtLocal();
+}
+
+// Vrne "zdaj + 24h" v formatu, ki ga pričakuje <input type="datetime-local">
+// (lokalni čas brskalnika, ne UTC — zato brez uporabe toISOString()).
+function defaultEndsAtLocal() {
+  var d = new Date(Date.now() + 24 * 3600 * 1000);
+  var pad = function(n) { return String(n).padStart(2, '0'); };
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+var newEventExcluded = []; // {id, name} igralcev, ki ne smejo staviti na trenutno stavo v pripravi
+
+async function addExcludedUser() {
+  var input = document.getElementById('newEventExcludeInput').value.trim();
+  if (!input) return;
+
+  var groupId = document.getElementById('newEventGroup').value;
+  if (!groupId) { showToast('Najprej izberi skupino!', true); return; }
+
+  try {
+    var found = null;
+    var byEmail = await db.collection('users').where('email', '==', input).get();
+    var emailMatches = byEmail.docs.filter(function(d) { return !d.data()._placeholder; });
+    if (emailMatches.length > 0) {
+      found = emailMatches[0];
+    } else {
+      var byName = await db.collection('users').where('name', '==', input.toUpperCase()).get();
+      var nameMatches = byName.docs.filter(function(d) { return !d.data()._placeholder; });
+      if (nameMatches.length > 0) found = nameMatches[0];
+    }
+
+    if (!found) { showToast('Igralec ni najden (poskusi z natančnim emailom).', true); return; }
+    if (found.data().groupId !== groupId) { showToast('Ta igralec ni v izbrani skupini!', true); return; }
+    if (newEventExcluded.some(function(u) { return u.id === found.id; })) { showToast('Ta igralec je že na seznamu.', true); return; }
+
+    newEventExcluded.push({ id: found.id, name: found.data().name });
+    document.getElementById('newEventExcludeInput').value = '';
+    renderExcludedChips();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri iskanju igralca!', true);
+  }
+}
+
+function removeExcludedUser(uid) {
+  newEventExcluded = newEventExcluded.filter(function(u) { return u.id !== uid; });
+  renderExcludedChips();
+}
+
+function renderExcludedChips() {
+  var wrap = document.getElementById('newEventExcludeChips');
+  wrap.innerHTML = newEventExcluded.map(function(u) {
+    return '<span style="background:var(--card2);border:1px solid var(--orange);color:var(--orange);border-radius:20px;padding:4px 10px;font-size:13px;display:inline-flex;align-items:center;gap:6px;">' +
+      u.name +
+      '<span style="cursor:pointer;font-weight:700;" onclick="removeExcludedUser(\'' + u.id + '\')">✕</span>' +
+    '</span>';
+  }).join('');
 }
 
 async function ustvariStavo() {
@@ -2958,20 +3046,29 @@ async function ustvariStavo() {
   const o1 = document.getElementById('newOpt1').value.trim();
   const o2 = document.getElementById('newOpt2').value.trim();
   const o3 = document.getElementById('newOpt3').value.trim();
-  const dur = parseInt(document.getElementById('newDuration').value) || 24;
+  const endsAtStr = document.getElementById('newEndsAt').value;
   const groupId = document.getElementById('newEventGroup').value;
 
   if (!q || !o1 || !o2) { showToast('Vpiši vprašanje in vsaj 2 odgovora!', true); return; }
   if (!groupId) { showToast('Izberi skupino!', true); return; }
+  if (!endsAtStr) { showToast('Izberi datum in uro konca stave!', true); return; }
+
+  const endsAt = new Date(endsAtStr);
+  if (isNaN(endsAt.getTime()) || endsAt.getTime() <= Date.now()) {
+    showToast('Datum konca mora biti v prihodnosti!', true);
+    return;
+  }
 
   const groupObj = allGroups.find(g => g.id === groupId);
   const groupName = groupObj ? groupObj.name : (currentAdmin.groupName || '');
 
-  const endsAt = new Date(Date.now() + dur * 3600 * 1000);
   await db.collection('events').add({
     question: q, opt1: o1, opt2: o2,
     opt3: o3 || null,
     groupId: groupId, groupName: groupName,
+    excludedUserIds: newEventExcluded.map(function(u) { return u.id; }),
+    excludedUserNames: newEventExcluded.map(function(u) { return u.name; }),
+    createdBy: currentAdmin.id, createdByName: currentAdmin.name,
     endsAt, resolved: false, winner: null,
     bets: {}, totalBets: 0,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2981,7 +3078,9 @@ async function ustvariStavo() {
   document.getElementById('newOpt1').value = '';
   document.getElementById('newOpt2').value = '';
   document.getElementById('newOpt3').value = '';
-  document.getElementById('newDuration').value = '24';
+  document.getElementById('newEndsAt').value = defaultEndsAtLocal();
+  newEventExcluded = [];
+  renderExcludedChips();
   showToast('Stava ustvarjena! ✅');
   loadAdminEvents();
   loadAdminStats();
