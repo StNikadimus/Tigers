@@ -1605,8 +1605,9 @@ var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
 var currentAdmin = null; // { id, name, role, permissions: [], groupId? }
 var allGroups = [];
-var pendingUid = null;      // uid, ki čaka na vnos 2FA kode
-var pendingUserData = null; // podatki novega uporabnika, ki čakajo, da se zapišejo po uspešni 2FA (registracija)
+var pendingUid = null;              // uid, ki čaka na vnos 2FA kode
+var pendingIsRegistration = false;  // ali ta 2FA teče kot del registracije (ne prijave)
+var pendingRegistrationData = null; // podatki novega uporabnika, zapisani v Firestore šele po uspešni 2FA
 var resendCooldown = 0;
 var resendTimer = null;
 
@@ -1615,9 +1616,9 @@ var resendTimer = null;
 // 2) Dodaj "Email Service" (npr. poveži svoj Gmail)
 // 3) Ustvari "Email Template" s spremenljivkama {{to_email}} in {{code}}
 // 4) Spodnje 3 vrednosti zamenjaj s svojimi (Account > General za Public Key)
-var EMAILJS_PUBLIC_KEY  = 'I2NKz150rmsXSVvme';
-var EMAILJS_SERVICE_ID  = 'service_rr5x54h';
-var EMAILJS_TEMPLATE_ID = 'template_n03ugcl';
+var EMAILJS_PUBLIC_KEY  = 'TUKAJ_VPISI_EMAILJS_PUBLIC_KEY';
+var EMAILJS_SERVICE_ID  = 'TUKAJ_VPISI_EMAILJS_SERVICE_ID';
+var EMAILJS_TEMPLATE_ID = 'TUKAJ_VPISI_EMAILJS_TEMPLATE_ID';
 if (window.emailjs && EMAILJS_PUBLIC_KEY.indexOf('TUKAJ_VPISI') === -1) {
   emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 }
@@ -1652,8 +1653,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-// Firebase te obdrži prijavljenega med osvežitvami strani, a 2FA kodo
-// vseeno zahtevamo enkrat na vsako novo sejo brskalnika (glej checkExistingSession spodaj).
+// SESSION persistence: prijava velja samo za ta zavihek/to sejo brskalnika.
+// Ko zapreš zavihek (ali cel brskalnik), Firebase to sejo pozabi in bo
+// naslednjič spet treba vpisati email+geslo (brez ponovne 2FA — ta je
+// samo enkrat, ob registraciji, glej doRegister/verify2FACode spodaj).
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(e) {
+  console.warn('Nastavitev auth persistence ni uspela:', e.message);
+});
 
 // ===== FIREBASE STRUCTURE INIT =====
 // ===== INACTIVITY BONUS =====
@@ -1901,16 +1907,18 @@ async function doRegister() {
     var groupSnap = await db.collection('groups').doc(groupId).get();
     var groupName = groupSnap.exists ? groupSnap.data().name : '—';
 
-    var userData = {
+    // Firestore profil ustvarimo ŠELE po uspešni 2FA potrditvi (glej
+    // verify2FACode) — tako se ob registraciji email res preveri enkrat,
+    // preden račun dejansko "obstaja". Podatke do takrat samo hranimo.
+    pendingRegistrationData = {
       name: name, email: email, groupId: groupId, groupName: groupName,
       role: 'member', coins: STARTING_COINS,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       totalBets: 0, wins: 0, lastBonusDate: null
     };
-    await db.collection('users').doc(uid).set(userData);
 
     closeAuthModal();
-    beginTwoFactor(uid, email);
+    beginTwoFactor(uid, email, true);
   } catch(e) {
     console.error(e);
     errEl.textContent = friendlyAuthError(e);
@@ -1926,8 +1934,10 @@ async function doLogin() {
 
   try {
     var cred = await auth.signInWithEmailAndPassword(email, pass);
+    // Email je bil preverjen enkrat, ob registraciji — tukaj 2FA NE
+    // ponavljamo, samo geslo je dovolj za prijavo.
     closeAuthModal();
-    beginTwoFactor(cred.user.uid, email);
+    await loadCurrentUserAndEnter(cred.user.uid);
   } catch(e) {
     console.error(e);
     errEl.textContent = friendlyAuthError(e);
@@ -1966,8 +1976,9 @@ async function sha256Hex(str) {
   return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
 }
 
-function beginTwoFactor(uid, email) {
+function beginTwoFactor(uid, email, isRegistration) {
   pendingUid = uid;
+  pendingIsRegistration = !!isRegistration;
   document.getElementById('twoFAEmailLabel').textContent = email;
   document.getElementById('twoFACodeInput').value = '';
   document.getElementById('twoFAError').textContent = '';
@@ -2045,10 +2056,21 @@ async function verify2FACode() {
     }
 
     await ref.delete();
-    sessionStorage.setItem('tigers2faVerified_' + pendingUid, '1');
-    document.getElementById('twoFAModal').classList.add('hidden');
-    await loadCurrentUserAndEnter(pendingUid);
+    var uid = pendingUid;
+    var wasRegistration = pendingIsRegistration;
+
+    // Email je s tem enkrat za vselej potrjen — Firestore profil ustvarimo
+    // šele zdaj (samo pri registraciji; pri prijavi profil že obstaja).
+    if (wasRegistration && pendingRegistrationData) {
+      await db.collection('users').doc(uid).set(pendingRegistrationData);
+    }
+
+    if (resendTimer) clearInterval(resendTimer);
     pendingUid = null;
+    pendingIsRegistration = false;
+    pendingRegistrationData = null;
+    document.getElementById('twoFAModal').classList.add('hidden');
+    await loadCurrentUserAndEnter(uid);
   } catch(e) {
     console.error(e);
     errEl.textContent = 'Napaka pri preverjanju kode.';
@@ -2058,8 +2080,18 @@ async function verify2FACode() {
 function cancelTwoFA() {
   document.getElementById('twoFAModal').classList.add('hidden');
   if (resendTimer) clearInterval(resendTimer);
+  var wasRegistration = pendingIsRegistration;
   pendingUid = null;
-  auth.signOut();
+  pendingIsRegistration = false;
+  pendingRegistrationData = null;
+  // Če je bilo prekinjeno med registracijo, počisti pol-ustvarjen Firebase
+  // Auth račun, da lahko oseba kasneje registracijo poskusi znova s tem
+  // istim emailom (sicer bi dobila "email že v uporabi", brez profila).
+  if (wasRegistration && auth.currentUser) {
+    auth.currentUser.delete().catch(function(e) { console.warn('Čiščenje po preklicu ni uspelo:', e.message); });
+  } else {
+    auth.signOut();
+  }
   setScreen('landing');
 }
 
@@ -2082,25 +2114,22 @@ function logout() {
   if (unsubEvents) unsubEvents();
   if (unsubUser) unsubUser();
   if (notifUnsub) notifUnsub();
-  if (currentUser) sessionStorage.removeItem('tigers2faVerified_' + currentUser.id);
   auth.signOut();
   currentUser = null;
   currentAdmin = null;
   setScreen('landing');
 }
 
-// Ob nalaganju strani: če je uporabnik že prijavljen v tej seji brskalnika IN je
-// to sejo že potrdil z 2FA kodo, ga spustimo naravnost naprej. Če Firebase še ve
-// zanj (ostal prijavljen iz prejšnje seje), a te seje ni potrdil z 2FA, zahtevamo
-// novo kodo, preden mu pokažemo karkoli.
+// Ob nalaganju/osvežitvi strani: če Firebase Auth (znotraj TE seje brskalnika,
+// glej auth.setPersistence SESSION zgoraj) že pozna prijavljenega uporabnika,
+// ga naložimo naravnost naprej — brez ponovne 2FA, saj je bil email enkrat
+// za vselej preverjen že ob registraciji. Ko se zavihek/brskalnik zapre,
+// Firebase to sejo pozabi in bo naslednjič spet treba vpisati email+geslo.
 auth.onAuthStateChanged(function(user) {
   if (!user) return;
   if (currentUser) return; // že obdelano (ravno prijavljen skozi doLogin/doRegister)
-  if (sessionStorage.getItem('tigers2faVerified_' + user.uid) === '1') {
-    loadCurrentUserAndEnter(user.uid);
-  } else {
-    beginTwoFactor(user.uid, user.email);
-  }
+  if (pendingUid) return;  // ravno teče 2FA za registracijo — ne mešaj vmes
+  loadCurrentUserAndEnter(user.uid);
 });
 
 // ===== DAILY BONUS =====
