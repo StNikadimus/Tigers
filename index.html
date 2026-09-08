@@ -521,7 +521,7 @@
   ::-webkit-scrollbar-thumb { background:var(--orange-dim); }
 
   /* Admin modal */
-  #adminLoginModal .modal { border-color: #444; }
+  #notAdminModal .modal, #notLoggedInModal .modal { border-color: #444; }
   .coin-icon { color:var(--orange); }
 
   /* History in profile */
@@ -1035,7 +1035,6 @@
       <button class="btn-notif" id="notifBtn" onclick="toggleNotifications()">
         🔔<span class="notif-badge hidden" id="notifBadge">0</span>
       </button>
-      <button class="btn-admin hidden" id="managerPanelBtn" onclick="enterManagerPanel()">🎯 MOJA SKUPINA</button>
       <button class="btn-admin" onclick="showAdminLogin()">⚙ ADMIN</button>
       <button class="btn-sm" onclick="logout()">ODJAVA</button>
     </div>
@@ -1249,7 +1248,7 @@
         <span id="adminRoleBadge" style="background:var(--orange);color:#000;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:3px 10px;border-radius:6px;">—</span>
         <span id="adminNameDisplay" style="font-weight:700;font-size:15px;">—</span>
       </div>
-      <button onclick="showChangePassword()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔑 Spremeni geslo</button>
+      <button onclick="adminResetPassword()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔑 Ponastavi geslo (email)</button>
     </div>
 
     <!-- Tabs -->
@@ -1500,17 +1499,13 @@
           </div>
         </div>
 
-        <!-- Add admin form -->
+        <!-- Promote existing player -->
         <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;">
-          <div class="field-label" style="margin-bottom:14px;">➕ DODAJ ADMINA</div>
+          <div class="field-label" style="margin-bottom:14px;">➕ POVIŠAJ REGISTRIRANEGA IGRALCA</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-            <div style="flex:1;min-width:130px;">
-              <div class="field-label" style="font-size:12px;">IME</div>
-              <input type="text" class="input-field" id="newAdminName" placeholder="Ime admina...">
-            </div>
-            <div style="flex:1;min-width:130px;">
-              <div class="field-label" style="font-size:12px;">GESLO</div>
-              <input type="password" class="input-field" id="newAdminPass" placeholder="Geslo...">
+            <div style="flex:1;min-width:180px;">
+              <div class="field-label" style="font-size:12px;">EMAIL ALI IME</div>
+              <input type="text" class="input-field" id="newAdminSearch" placeholder="email@primer.com ali IME">
             </div>
             <div style="flex:1;min-width:160px;">
               <div class="field-label" style="font-size:12px;">VLOGA</div>
@@ -1519,8 +1514,9 @@
                 <option value="superadmin">👑 Super Admin</option>
               </select>
             </div>
-            <button class="btn-resolve" style="height:42px;" onclick="addAdmin()">+ DODAJ</button>
+            <button class="btn-resolve" style="height:42px;" onclick="promoteToAdmin()">+ POVIŠAJ</button>
           </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:10px;">Oseba se mora najprej sama registrirati (email+geslo) — šele nato jo lahko tukaj poviševaš.</div>
         </div>
 
         <!-- Admin list -->
@@ -1531,46 +1527,24 @@
       </div>
     </div>
 
-<!-- Change Password Modal -->
-<div id="changePassModal" class="modal-overlay hidden">
-  <div class="modal" style="border-color:#444;max-width:360px;">
-    <h2 style="color:#fff;">🔑 SPREMENI GESLO</h2>
-    <div style="margin-bottom:12px;">
-      <div class="field-label" style="margin-bottom:6px;">STARO GESLO</div>
-      <input type="password" class="input-field" id="oldPassInput" placeholder="Trenutno geslo...">
-    </div>
-    <div style="margin-bottom:12px;">
-      <div class="field-label" style="margin-bottom:6px;">NOVO GESLO</div>
-      <input type="password" class="input-field" id="newPassInput" placeholder="Novo geslo...">
-    </div>
-    <div style="margin-bottom:16px;">
-      <div class="field-label" style="margin-bottom:6px;">POTRDI NOVO GESLO</div>
-      <input type="password" class="input-field" id="newPassConfirm" placeholder="Ponovi geslo...">
-    </div>
-    <div id="changePassError" style="color:#ff4444;font-size:13px;margin-bottom:12px;"></div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn-cancel" onclick="document.getElementById('changePassModal').classList.add('hidden')" style="flex:1;">PREKLIČI</button>
-      <button class="btn-resolve" onclick="doChangePassword()" style="flex:2;">SHRANI</button>
-    </div>
+
+
+<div id="notAdminModal" class="modal-overlay hidden">
+  <div class="modal" style="border-color:#444;max-width:360px;text-align:center;">
+    <h2 style="color:#fff;">🚫 NISI ADMIN</h2>
+    <p>Tvoj račun (<b id="notAdminEmail" style="color:var(--orange);"></b>) nima admin pravic. Če misliš, da bi jih moral imeti, se obrni na superadmina kluba.</p>
+    <button class="btn-confirm" onclick="document.getElementById('notAdminModal').classList.add('hidden')">V REDU</button>
   </div>
 </div>
 
-<div id="adminLoginModal" class="modal-overlay hidden">
-  <div class="modal" style="border-color:#444;">
-    <h2 style="color:#fff;">⚙ ADMIN</h2>
-    <p>Vpiši admin ime in geslo.</p>
-    <div style="margin-bottom:12px;">
-      <div class="field-label" style="margin-bottom:6px;">ADMIN IME</div>
-      <input type="text" class="input-field" id="adminNameInput" placeholder="ADMIN IME...">
+<div id="notLoggedInModal" class="modal-overlay hidden">
+  <div class="modal" style="border-color:#444;max-width:360px;text-align:center;">
+    <h2 style="color:#fff;">🔒 NISI PRIJAVLJEN</h2>
+    <p>Za dostop do admin panela se moraš najprej prijaviti s svojim email računom.</p>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-cancel" style="flex:1;" onclick="document.getElementById('notLoggedInModal').classList.add('hidden')">PREKLIČI</button>
+      <button class="btn-confirm" style="flex:1;margin-top:0;" onclick="document.getElementById('notLoggedInModal').classList.add('hidden'); showAuthModal('login');">PRIJAVA</button>
     </div>
-    <div>
-      <div class="field-label" style="margin-bottom:6px;">GESLO</div>
-      <input type="password" class="input-field" id="adminPassInput" placeholder="GESLO..."
-        onkeydown="if(event.key==='Enter') tryAdminLogin()">
-    </div>
-    <div class="error-msg" id="adminError"></div>
-    <button class="btn-confirm" onclick="tryAdminLogin()" style="margin-top:16px;">VSTOPI</button>
-    <button class="btn-sm" onclick="closeAdminModal()" style="width:100%;margin-top:8px;text-align:center;">PREKLIČI</button>
   </div>
 </div>
 
@@ -1707,18 +1681,11 @@ async function ensureFirebaseStructure() {
     catch(e) { console.warn('Firebase init — preskočeno (' + label + '): ' + e.message); }
   }
 
-  // ===== Najprej: privzeta skupina, da registracija ni nikoli blokirana =====
-  await safely('privzeta skupina', async function() {
-    const activeGroupsSnap = await db.collection('groups').where('active', '==', true).get();
-    const hasRealGroup = activeGroupsSnap.docs.some(function(d) { return !d.data()._placeholder; });
-    if (!hasRealGroup) {
-      await db.collection('groups').add({
-        name: 'Splošna skupina', managerId: null, managerName: null, managerEmail: null,
-        active: true, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      console.log('ℹ️ Ustvarjena privzeta skupina "Splošna skupina" (ker še ni obstajala nobena).');
-    }
-  });
+  // OPOMBA: prej je tukaj stal avtomatski "ustvari privzeto skupino, če je
+  // ni" korak. Pod novimi pravili (admin = Firebase Auth users.role) to
+  // lahko naredi samo superadmin, ne pa anonimen obiskovalec — zato je
+  // prva skupina zdaj ročni korak (glej navodila v odgovoru v klepetu:
+  // Firebase Console → Firestore → groups → Add document).
 
   await safely('config/admin', async function() {
     const ref = db.collection('config').doc('admin');
@@ -1786,12 +1753,6 @@ async function ensureFirebaseStructure() {
     const ref = db.collection('adminRoles').doc('_init_');
     const snap = await ref.get();
     if (!snap.exists) await ref.set({ label:'__init__', permissions:[], _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
-  });
-
-  await safely('admins placeholder', async function() {
-    const ref = db.collection('admins').doc('_init_');
-    const snap = await ref.get();
-    if (!snap.exists) await ref.set({ name:'__init__', password:'__init__', role:'superadmin', permissions:[], _placeholder:true, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
   });
 
   await safely('groups placeholder', async function() {
@@ -2180,8 +2141,6 @@ async function initHome() {
   updateNavCoins();
   initNotifications();
 
-  document.getElementById('managerPanelBtn').classList.toggle('hidden', currentUser.role !== 'manager');
-
   if (unsubEvents) unsubEvents();
   unsubEvents = db.collection('events')
     .where('groupId', '==', currentUser.groupId)
@@ -2529,75 +2488,44 @@ async function placeBet() {
 }
 
 // ===== ADMIN =====
-function showAdminLogin() {
-  document.getElementById('adminLoginModal').classList.remove('hidden');
-  setTimeout(function() { document.getElementById('adminNameInput').focus(); }, 100);
-  document.getElementById('adminError').textContent = '';
-}
-
-function closeAdminModal() {
-  document.getElementById('adminLoginModal').classList.add('hidden');
-}
-
 function hasPerm(perm) {
   if (!currentAdmin) return false;
   return currentAdmin.permissions.indexOf(perm) !== -1;
 }
 
-async function tryAdminLogin() {
-  var inputName = document.getElementById('adminNameInput').value.trim();
-  var inputPass = document.getElementById('adminPassInput').value.trim();
-  if (!inputName || !inputPass) {
-    document.getElementById('adminError').textContent = 'Vpiši ime in geslo!';
+// ADMIN gumb: preveri, ali je trenutno prijavljeni Firebase Auth uporabnik
+// admin/manager (glede na users/{uid}.role) — enotna prijava za vse.
+function showAdminLogin() {
+  if (!currentUser) {
+    document.getElementById('notLoggedInModal').classList.remove('hidden');
     return;
   }
-
-  // Check admins collection
-  var snap = await db.collection('admins').get();
-  var admins = snap.docs
-    .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
-    .filter(function(a) { return !a._placeholder; });
-
-  // First login ever — create superadmin
-  if (admins.length === 0) {
-    var role = 'superadmin';
-    var perms = ROLES[role].permissions;
-    var docRef = await db.collection('admins').add({
-      name: inputName, password: inputPass,
-      role: role, permissions: perms,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    currentAdmin = { id: docRef.id, name: inputName, role: role, permissions: perms };
-    closeAdminModal();
-    showToast('Super Admin ustvarjen! 👑');
-    enterAdmin();
-    return;
-  }
-
-  // Find matching admin
-  var found = admins.find(function(a) { return a.name === inputName && a.password === inputPass; });
-  if (found) {
-    currentAdmin = found;
-    closeAdminModal();
+  var role = currentUser.role;
+  if (role === 'superadmin' || role === 'event_admin' || role === 'manager' || (ROLES[role] && ROLES[role].custom)) {
+    currentAdmin = {
+      id: currentUser.id,
+      name: currentUser.name,
+      role: role,
+      permissions: ROLES[role] ? ROLES[role].permissions : [],
+      groupId: currentUser.groupId,
+      groupName: currentUser.groupName
+    };
     enterAdmin();
   } else {
-    document.getElementById('adminError').textContent = 'Napačno ime ali geslo!';
+    document.getElementById('notAdminEmail').textContent = currentUser.email || currentUser.name;
+    document.getElementById('notAdminModal').classList.remove('hidden');
   }
 }
 
-// Manager skupine vstopi v (omejen) admin panel brez ločene admin prijave —
-// uporabi svojo že preverjeno Firebase Auth + 2FA sejo.
-function enterManagerPanel() {
-  if (!currentUser || currentUser.role !== 'manager') return;
-  currentAdmin = {
-    id: currentUser.id,
-    name: currentUser.name,
-    role: 'manager',
-    permissions: ROLES.manager.permissions,
-    groupId: currentUser.groupId,
-    groupName: currentUser.groupName
-  };
-  enterAdmin();
+async function adminResetPassword() {
+  if (!currentUser || !currentUser.email) return;
+  try {
+    await auth.sendPasswordResetEmail(currentUser.email);
+    showToast('Povezava za ponastavitev gesla poslana na ' + currentUser.email + ' 📧');
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri pošiljanju: ' + (e.message || e), true);
+  }
 }
 
 async function enterAdmin() {
@@ -2659,33 +2587,6 @@ function switchTab(tabId) {
   window.scrollTo(0, 0);
 }
 
-// ===== CHANGE PASSWORD =====
-function showChangePassword() {
-  document.getElementById('oldPassInput').value = '';
-  document.getElementById('newPassInput').value = '';
-  document.getElementById('newPassConfirm').value = '';
-  document.getElementById('changePassError').textContent = '';
-  document.getElementById('changePassModal').classList.remove('hidden');
-}
-
-async function doChangePassword() {
-  var oldPass = document.getElementById('oldPassInput').value.trim();
-  var newPass = document.getElementById('newPassInput').value.trim();
-  var confirm = document.getElementById('newPassConfirm').value.trim();
-  var errEl = document.getElementById('changePassError');
-
-  if (!oldPass || !newPass || !confirm) { errEl.textContent = 'Izpolni vsa polja!'; return; }
-  if (oldPass !== currentAdmin.password) { errEl.textContent = 'Staro geslo je napačno!'; return; }
-  if (newPass !== confirm) { errEl.textContent = 'Novi gesli se ne ujemata!'; return; }
-  if (newPass.length < 3) { errEl.textContent = 'Geslo mora imeti vsaj 3 znake!'; return; }
-
-  await db.collection('admins').doc(currentAdmin.id).update({ password: newPass });
-  currentAdmin.password = newPass;
-  document.getElementById('changePassModal').classList.add('hidden');
-  showToast('Geslo spremenjeno! 🔑');
-}
-
-// ===== ADMINS MANAGEMENT =====
 // ===== ROLES MANAGEMENT =====
 async function loadRolesFromDB() {
   // Load custom roles from Firestore and merge with built-in ROLES
@@ -2764,7 +2665,7 @@ async function deleteRole(roleKey) {
 function refreshRoleDropdown() {
   var sel = document.getElementById('newAdminRole');
   if (!sel) return;
-  sel.innerHTML = Object.keys(ROLES).map(function(rk) {
+  sel.innerHTML = Object.keys(ROLES).filter(function(rk) { return rk !== 'manager'; }).map(function(rk) {
     return '<option value="' + rk + '">' + ROLES[rk].label + '</option>';
   }).join('');
 }
@@ -2777,14 +2678,13 @@ async function loadAdminsList() {
   var list = document.getElementById('adminsList');
   if (!list) return;
 
-  var snap = await db.collection('admins').get();
+  var snap = await db.collection('users').get();
   var admins = snap.docs
     .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
-    .filter(function(a) { return !a._placeholder; })
-    .sort(function(a, b) { return (a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0) - (b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0); });
+    .filter(function(u) { return !u._placeholder && u.role && u.role !== 'member' && u.role !== 'manager'; });
 
   if (admins.length === 0) {
-    list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Ni adminov.</div>';
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;">Ni globalnih adminov (manager skupine se ureja v zavihku SKUPINE).</div>';
     return;
   }
 
@@ -2794,58 +2694,63 @@ async function loadAdminsList() {
     return '<div style="background:var(--card2);border:1px solid ' + (isSelf ? 'var(--orange)' : 'var(--border)') + ';border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
       '<div style="flex:1;min-width:150px;">' +
         '<div style="font-weight:700;font-size:15px;">' + a.name + (isSelf ? ' <span style="color:var(--orange);font-size:12px;">(ti)</span>' : '') + '</div>' +
-        '<div style="font-size:12px;color:var(--muted);margin-top:3px;">' + roleInfo.label + '</div>' +
+        '<div style="font-size:12px;color:var(--muted);margin-top:3px;">' + (a.email || '') + ' · ' + roleInfo.label + '</div>' +
       '</div>' +
       '<select class="resolve-select" data-aid="' + a.id + '" onchange="changeAdminRole(this.dataset.aid, this.value)" ' + (isSelf ? 'disabled' : '') + '>' +
-        Object.keys(ROLES).map(function(rk) {
+        Object.keys(ROLES).filter(function(rk){ return rk !== 'manager'; }).map(function(rk) {
           return '<option value="' + rk + '"' + (a.role === rk ? ' selected' : '') + '>' + ROLES[rk].label + '</option>';
         }).join('') +
       '</select>' +
-      (!isSelf ? '<button class="btn-delete-event" style="padding:6px 12px;" data-aid="' + a.id + '" data-aname="' + a.name + '" onclick="deleteAdminBtn(this)">🗑</button>' : '') +
+      (!isSelf ? '<button class="btn-delete-event" style="padding:6px 12px;" data-aid="' + a.id + '" data-aname="' + a.name + '" onclick="demoteAdminBtn(this)">🗑 Degradiraj</button>' : '') +
     '</div>';
   }).join('');
 }
 
-async function addAdmin() {
-  var name = document.getElementById('newAdminName').value.trim();
-  var pass = document.getElementById('newAdminPass').value.trim();
+async function promoteToAdmin() {
+  var input = document.getElementById('newAdminSearch').value.trim();
   var role = document.getElementById('newAdminRole').value;
-  if (!name || !pass) { showToast('Izpolni ime in geslo!', true); return; }
+  if (!input) { showToast('Vpiši email ali ime registriranega igralca!', true); return; }
 
-  // Check duplicate name
-  var snap = await db.collection('admins').where('name', '==', name).get();
-  var existing = snap.docs.filter(function(d) { return !d.data()._placeholder; });
-  if (existing.length > 0) { showToast('Admin s tem imenom že obstaja!', true); return; }
+  try {
+    var found = null;
+    var byEmail = await db.collection('users').where('email', '==', input).get();
+    var emailMatches = byEmail.docs.filter(function(d) { return !d.data()._placeholder; });
+    if (emailMatches.length > 0) {
+      found = emailMatches[0];
+    } else {
+      var byName = await db.collection('users').where('name', '==', input.toUpperCase()).get();
+      var nameMatches = byName.docs.filter(function(d) { return !d.data()._placeholder; });
+      if (nameMatches.length > 0) found = nameMatches[0];
+    }
 
-  var perms = ROLES[role] ? ROLES[role].permissions : [];
-  await db.collection('admins').add({
-    name: name, password: pass, role: role, permissions: perms,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
+    if (!found) { showToast('Uporabnik ni najden — mora biti že registriran (poskusi z natančnim emailom).', true); return; }
 
-  document.getElementById('newAdminName').value = '';
-  document.getElementById('newAdminPass').value = '';
-  showToast('Admin dodan! 🔐');
-  loadAdminsList();
+    await db.collection('users').doc(found.id).update({ role: role });
+    document.getElementById('newAdminSearch').value = '';
+    showToast(found.data().name + ' je zdaj ' + (ROLES[role] ? ROLES[role].label : role) + '! 🔐');
+    loadAdminsList();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri iskanju uporabnika!', true);
+  }
 }
 
-async function changeAdminRole(adminId, newRole) {
-  var perms = ROLES[newRole] ? ROLES[newRole].permissions : [];
-  await db.collection('admins').doc(adminId).update({ role: newRole, permissions: perms });
+async function changeAdminRole(uid, newRole) {
+  await db.collection('users').doc(uid).update({ role: newRole });
   showToast('Vloga spremenjena!');
   loadAdminsList();
 }
 
-function deleteAdminBtn(btn) {
-  var adminId = btn.getAttribute('data-aid');
-  var adminName = btn.getAttribute('data-aname');
-  deleteAdmin(adminId, adminName);
+function demoteAdminBtn(btn) {
+  var uid = btn.getAttribute('data-aid');
+  var name = btn.getAttribute('data-aname');
+  demoteAdmin(uid, name);
 }
 
-async function deleteAdmin(adminId, adminName) {
-  if (!confirm('Izbriši admina "' + adminName + '"?')) return;
-  await db.collection('admins').doc(adminId).delete();
-  showToast('Admin izbrisan.');
+async function demoteAdmin(uid, name) {
+  if (!confirm('Degradiraj "' + name + '" nazaj na navadnega igralca?')) return;
+  await db.collection('users').doc(uid).update({ role: 'member' });
+  showToast('Uporabnik degradiran na navadnega igralca.');
   loadAdminsList();
 }
 
