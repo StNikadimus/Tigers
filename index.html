@@ -1063,6 +1063,7 @@
     <div class="nav-right">
       <div class="nav-coins">🪙 <span id="coinsDisplay">0</span></div>
       <div class="nav-user" id="navUsername">—</div>
+      <button class="btn-notif hidden" id="switchGroupBtn" onclick="showSwitchGroupModal()" title="Zamenjaj skupino">🔀</button>
       <button class="btn-notif" id="notifBtn" onclick="toggleNotifications()">
         🔔<span class="notif-badge hidden" id="notifBadge">0</span>
       </button>
@@ -1652,6 +1653,18 @@
   </div>
 </div>
 
+<!-- Switch Group Modal (samo superadmin) -->
+<div id="switchGroupModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:380px;">
+    <h2>🔀 ZAMENJAJ SKUPINO</h2>
+    <p>Kot super admin lahko igraš/staviš v katerikoli skupini. Trenutno si v: <b style="color:var(--orange);" id="switchGroupCurrent">—</b></p>
+    <div id="switchGroupList" style="display:flex;flex-direction:column;gap:8px;margin:16px 0;max-height:340px;overflow-y:auto;">
+      <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+    </div>
+    <button class="btn-sm" style="width:100%;text-align:center;" onclick="document.getElementById('switchGroupModal').classList.add('hidden')">PREKLIČI</button>
+  </div>
+</div>
+
 <!-- Add to Home Screen (iOS) -->
 <div id="addHomeScreenModal" class="modal-overlay hidden">
   <div class="modal" style="max-width:380px;text-align:center;">
@@ -1707,7 +1720,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.4';
+var APP_VERSION = '2026-09-08.5';
 
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
@@ -2311,6 +2324,9 @@ async function initHome() {
   updateNavCoins();
   initNotifications();
 
+  const switchBtn = document.getElementById('switchGroupBtn');
+  if (switchBtn) switchBtn.classList.toggle('hidden', currentUser.role !== 'superadmin');
+
   if (unsubEvents) unsubEvents();
   unsubEvents = db.collection('events')
     .where('groupId', '==', currentUser.groupId)
@@ -2331,6 +2347,56 @@ async function initHome() {
       loadMyBets();
     }
   });
+}
+
+// ===== ZAMENJAJ SKUPINO (samo superadmin) =====
+// Superadmin lahko kot igralec vidi in staviš v katerikoli skupini — ne
+// samo v svoji "domači". To dejansko premakne njegov users.groupId na
+// izbrano skupino (isti mehanizem kot za navadne igralce), zato ni treba
+// posebej rahljati Firestore pravil za stavljenje.
+async function showSwitchGroupModal() {
+  document.getElementById('switchGroupCurrent').textContent = currentUser.groupName || '—';
+  const listEl = document.getElementById('switchGroupList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:14px;">Nalaganje...</div>';
+  document.getElementById('switchGroupModal').classList.remove('hidden');
+
+  try {
+    const snap = await db.collection('groups').get();
+    const groups = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(g => !g._placeholder)
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    if (groups.length === 0) {
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:14px;">Ni skupin.</div>';
+      return;
+    }
+
+    listEl.innerHTML = groups.map(g => {
+      const isCurrent = g.id === currentUser.groupId;
+      return `<button class="btn-sm" style="width:100%;text-align:left;padding:12px 14px;${isCurrent ? 'border-color:var(--orange);color:var(--orange);' : ''}"
+        onclick="switchMyGroup('${g.id}', '${(g.name || '').replace(/'/g, "\\'")}')" ${isCurrent ? 'disabled' : ''}>
+        ${isCurrent ? '✓ ' : ''}${g.name}${g.spicyMode ? ' 🌶️' : ''}${g.active === false ? ' <span style="color:var(--muted);font-size:12px;">(skrita)</span>' : ''}
+      </button>`;
+    }).join('');
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju skupin.</div>';
+  }
+}
+
+async function switchMyGroup(groupId, groupName) {
+  try {
+    await db.collection('users').doc(currentUser.id).update({ groupId, groupName });
+    currentUser.groupId = groupId;
+    currentUser.groupName = groupName;
+    document.getElementById('switchGroupModal').classList.add('hidden');
+    showToast('Zdaj si v skupini: ' + groupName + ' 🔀');
+    initHome();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri zamenjavi skupine!', true);
+  }
 }
 
 function updateNavCoins() {
