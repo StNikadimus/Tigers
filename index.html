@@ -1720,7 +1720,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.8';
+var APP_VERSION = '2026-09-08.10';
 
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
@@ -3609,73 +3609,97 @@ async function resolveEvent(eventId) {
   if (!ev) return;
   const isSpicy = !!ev.spicyMode;
 
-  await db.collection('events').doc(eventId).update({ resolved: true, winner });
+  if (!confirm(`Razreši stavo "${ev.question}" z zmagovalcem "${winner}"? Tega ni enostavno razveljaviti.`)) return;
 
-  const betsSnap = await db.collection('bets').where('eventId', '==', eventId).where('result', '==', 'pending').get();
-  let betDocs = betsSnap.docs.filter(d => !d.data()._placeholder);
+  const btn = document.querySelector(`button[onclick="resolveEvent('${eventId}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'RAZREŠUJEM...'; }
 
-  // 🌶️ Spicy Mode: v pool štejejo SAMO stave, ki jih je money manager že
-  // potrdil kot plačane. Nepotrjene (paymentStatus:'pending') pustimo pri
-  // miru — money manager jih mora prej potrditi ali igralec ni plačal.
-  if (isSpicy) {
-    betDocs = betDocs.filter(d => d.data().paymentStatus === 'confirmed');
-  }
+  const failedUsers = [];
 
-  const totalPool = betDocs.reduce((s, d) => s + d.data().amount, 0);
-  const winPool = betDocs.filter(d => d.data().option === winner).reduce((s, d) => s + d.data().amount, 0);
-  const payoutRatio = winPool > 0 ? totalPool / winPool : 1;
+  try {
+    await db.collection('events').doc(eventId).update({ resolved: true, winner });
 
-  for (const bd of betDocs) {
-    const b = bd.data();
-    const isWin = b.option === winner;
-    const payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
+    const betsSnap = await db.collection('bets').where('eventId', '==', eventId).where('result', '==', 'pending').get();
+    let betDocs = betsSnap.docs.filter(d => !d.data()._placeholder);
 
+    // 🌶️ Spicy Mode: v pool štejejo SAMO stave, ki jih je money manager že
+    // potrdil kot plačane. Nepotrjene (paymentStatus:'pending') pustimo pri
+    // miru — money manager jih mora prej potrditi ali igralec ni plačal.
     if (isSpicy) {
-      // Izplačilo NI avtomatsko — money manager ga mora ročno potrditi,
-      // ko dejansko izplača zmagovalca v gotovini (glej confirmPayout()).
-      await db.collection('bets').doc(bd.id).update({
-        result: isWin ? 'win' : 'lose',
-        payout,
-        payoutStatus: isWin ? 'pending' : 'not_applicable'
-      });
-      const uSnap = await db.collection('users').doc(b.userId).get();
-      if (uSnap.exists) {
-        await db.collection('users').doc(b.userId).update({
-          wins: (uSnap.data().wins || 0) + (isWin ? 1 : 0),
-          totalBets: (uSnap.data().totalBets || 0) + 1
-        });
-      }
-      if (isWin) {
-        await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Money manager ti dolguje ${payout} € (čaka izplačilo).`);
-      } else {
-        await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`);
-      }
-    } else {
-      await db.collection('bets').doc(bd.id).update({ result: isWin ? 'win' : 'lose', payout });
-      if (isWin) {
-        const uSnap = await db.collection('users').doc(b.userId).get();
-        if (uSnap.exists) {
-          await db.collection('users').doc(b.userId).update({
-            coins: (uSnap.data().coins || 0) + payout,
-            wins: (uSnap.data().wins || 0) + 1,
-            totalBets: (uSnap.data().totalBets || 0) + 1
+      betDocs = betDocs.filter(d => d.data().paymentStatus === 'confirmed');
+    }
+
+    const totalPool = betDocs.reduce((s, d) => s + d.data().amount, 0);
+    const winPool = betDocs.filter(d => d.data().option === winner).reduce((s, d) => s + d.data().amount, 0);
+    const payoutRatio = winPool > 0 ? totalPool / winPool : 1;
+
+    // Vsaka stava se obravnava POSAMEZNO in NAPAKA PRI ENI (npr. redek
+    // problem s pravicami na enem uporabniku) NE prekine obdelave ostalih —
+    // prej je ena sama napaka podrla CELO zanko in ustavila razreševanje.
+    for (const bd of betDocs) {
+      try {
+        const b = bd.data();
+        const isWin = b.option === winner;
+        const payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
+
+        if (isSpicy) {
+          await db.collection('bets').doc(bd.id).update({
+            result: isWin ? 'win' : 'lose',
+            payout,
+            payoutStatus: isWin ? 'pending' : 'not_applicable'
           });
+          const uSnap = await db.collection('users').doc(b.userId).get();
+          if (uSnap.exists) {
+            await db.collection('users').doc(b.userId).update({
+              wins: (uSnap.data().wins || 0) + (isWin ? 1 : 0),
+              totalBets: (uSnap.data().totalBets || 0) + 1
+            });
+          }
+          if (isWin) {
+            await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Money manager ti dolguje ${payout} € (čaka izplačilo).`);
+          } else {
+            await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`);
+          }
+        } else {
+          await db.collection('bets').doc(bd.id).update({ result: isWin ? 'win' : 'lose', payout });
+          if (isWin) {
+            const uSnap = await db.collection('users').doc(b.userId).get();
+            if (uSnap.exists) {
+              await db.collection('users').doc(b.userId).update({
+                coins: (uSnap.data().coins || 0) + payout,
+                wins: (uSnap.data().wins || 0) + 1,
+                totalBets: (uSnap.data().totalBets || 0) + 1
+              });
+            }
+            await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Prejel si +${payout} 🪙`);
+          } else {
+            const uSnap = await db.collection('users').doc(b.userId).get();
+            if (uSnap.exists) {
+              await db.collection('users').doc(b.userId).update({
+                totalBets: (uSnap.data().totalBets || 0) + 1
+              });
+            }
+            await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`);
+          }
         }
-        await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Prejel si +${payout} 🪙`);
-      } else {
-        const uSnap = await db.collection('users').doc(b.userId).get();
-        if (uSnap.exists) {
-          await db.collection('users').doc(b.userId).update({
-            totalBets: (uSnap.data().totalBets || 0) + 1
-          });
-        }
-        await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`);
+      } catch(betErr) {
+        console.error('Napaka pri obdelavi stave uporabnika ' + (bd.data().userName || bd.data().userId) + ':', betErr);
+        failedUsers.push(bd.data().userName || bd.data().userId);
       }
     }
-  }
 
-  showToast(`Stava razrešena! Zmagovalec: ${winner} 🏆`);
-  loadAdminEvents();
+    if (failedUsers.length > 0) {
+      showToast(`Stava razrešena, a napaka pri: ${failedUsers.join(', ')} — poglej konzolo (F12)`, true);
+    } else {
+      showToast(`Stava razrešena! Zmagovalec: ${winner} 🏆`);
+    }
+    // Prisilno osveži stran, da se admin seznam zanesljivo posodobi.
+    location.reload();
+  } catch(e) {
+    console.error('Napaka pri razreševanju stave:', e);
+    showToast('Napaka pri razreševanju: ' + (e.message || e), true);
+    if (btn) { btn.disabled = false; btn.textContent = 'RAZREŠI'; }
+  }
 }
 
 // ===== ARCHIVE =====
