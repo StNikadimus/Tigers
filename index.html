@@ -1720,7 +1720,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.10';
+var APP_VERSION = '2026-09-08.11';
 
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
@@ -3697,7 +3697,15 @@ async function resolveEvent(eventId) {
     location.reload();
   } catch(e) {
     console.error('Napaka pri razreševanju stave:', e);
-    showToast('Napaka pri razreševanju: ' + (e.message || e), true);
+    console.error('DIAGNOSTIKA — currentAdmin (predpomnjeno v brskalniku):', JSON.stringify(currentAdmin));
+    console.error('DIAGNOSTIKA — event.groupId (dokument, ki ga poskušamo urediti):', ev.groupId, '| event.spicyMode:', ev.spicyMode);
+    try {
+      var freshMe = await db.collection('users').doc(currentAdmin.id).get();
+      console.error('DIAGNOSTIKA — SVEŽE stanje iz Firestore za trenutnega managerja (users/' + currentAdmin.id + '):', JSON.stringify(freshMe.exists ? freshMe.data() : 'DOKUMENT NE OBSTAJA'));
+    } catch(diagErr) {
+      console.error('DIAGNOSTIKA — niti branje lastnega profila ni uspelo:', diagErr.message);
+    }
+    showToast('Napaka pri razreševanju: ' + (e.message || e) + ' — poglej konzolo (F12), tam je zdaj podrobna diagnostika', true);
     if (btn) { btn.disabled = false; btn.textContent = 'RAZREŠI'; }
   }
 }
@@ -3929,6 +3937,7 @@ async function extendEvent(eventId) {
 
 async function deleteEvent(eventId) {
   if (!confirm('Res izbrisati to stavo? Tega ni mogoče razveljaviti!')) return;
+  const ev = allEvents.find(e => e.id === eventId);
   try {
     // Delete all bets for this event
     const betsSnap = await db.collection('bets').where('eventId', '==', eventId).get();
@@ -3944,8 +3953,16 @@ async function deleteEvent(eventId) {
     loadAdminEvents();
     loadAdminStats();
   } catch(e) {
-    showToast('Napaka pri brisanju.', true);
-    console.error(e);
+    console.error('Napaka pri brisanju stave:', e);
+    console.error('DIAGNOSTIKA — currentAdmin (predpomnjeno v brskalniku):', JSON.stringify(currentAdmin));
+    console.error('DIAGNOSTIKA — event.groupId (dogodek, ki ga poskušamo izbrisati):', ev ? ev.groupId : 'NI NAJDEN V allEvents');
+    try {
+      var freshMe = await db.collection('users').doc(currentAdmin.id).get();
+      console.error('DIAGNOSTIKA — SVEŽE stanje iz Firestore za trenutnega managerja (users/' + currentAdmin.id + '):', JSON.stringify(freshMe.exists ? freshMe.data() : 'DOKUMENT NE OBSTAJA'));
+    } catch(diagErr) {
+      console.error('DIAGNOSTIKA — niti branje lastnega profila ni uspelo:', diagErr.message);
+    }
+    showToast('Napaka pri brisanju: ' + (e.message || e) + ' — poglej konzolo (F12), tam je zdaj podrobna diagnostika', true);
   }
 }
 
