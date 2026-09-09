@@ -1084,6 +1084,20 @@
       <button onclick="clearNotifications()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;">POČISTI VSE</button>
     </div>
     <div id="notifList"><div style="color:var(--muted);padding:16px;text-align:center;font-size:13px;">Ni novih obvestil.</div></div>
+    <div style="border-top:1px solid var(--border);padding:10px 14px;">
+      <button onclick="toggleNotifSettingsPanel()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;width:100%;text-align:left;">⚙️ Nastavitve obvestil</button>
+      <div id="notifSettingsPanel" class="hidden" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;font-size:13px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="notifSetting_daily_bonus" onchange="setNotifSetting('daily_bonus', this.checked)"> 🎁 Dnevni bonus
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="notifSetting_new_event" onchange="setNotifSetting('new_event', this.checked)"> 🆕 Nove stave
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="notifSetting_bet_resolved" onchange="setNotifSetting('bet_resolved', this.checked)"> 🏆 Razrešene stave
+        </label>
+      </div>
+    </div>
   </div>
 
   <!-- Dnevni bonus banner (skrit dokler ni na voljo) -->
@@ -1286,7 +1300,10 @@
         <span id="adminRoleBadge" style="background:var(--orange);color:#000;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:3px 10px;border-radius:6px;">—</span>
         <span id="adminNameDisplay" style="font-weight:700;font-size:15px;">—</span>
       </div>
-      <button onclick="adminResetPassword()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔑 Ponastavi geslo (email)</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="sendTestNotification()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔔 Testno obvestilo</button>
+        <button onclick="adminResetPassword()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔑 Ponastavi geslo (email)</button>
+      </div>
     </div>
 
     <!-- Tabs -->
@@ -1670,6 +1687,21 @@
   </div>
 </div>
 
+<!-- Notification Permission Popup -->
+<div id="notifPermModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:380px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:10px;">🔔</div>
+    <h2>OMOGOČI OBVESTILA</h2>
+    <p>Obveščali te bomo, ko je na voljo dnevni bonus, ko nastane nova stava v tvoji skupini, in ko se stava razreši.</p>
+    <p style="font-size:12px;color:var(--muted);">(Deluje, dokler je Tigers Stavljenje odprta v zavihku ali ozadju — ne prava push obvestila, ko je stran popolnoma zaprta.)</p>
+    <button class="btn-confirm" onclick="enableNotifications()">DA, OMOGOČI</button>
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button class="btn-sm" style="flex:1;" onclick="dismissNotifPrompt(false)">NE, HVALA</button>
+      <button class="btn-sm" style="flex:1;" onclick="dismissNotifPrompt(true)">NE SPRAŠUJ VEČ</button>
+    </div>
+  </div>
+</div>
+
 <!-- Add to Home Screen (iOS) -->
 <div id="addHomeScreenModal" class="modal-overlay hidden">
   <div class="modal" style="max-width:380px;text-align:center;">
@@ -1725,7 +1757,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.17';
+var APP_VERSION = '2026-09-08.18';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -1816,7 +1848,7 @@ async function checkInactivityBonus(userId) {
         coins: newCoins,
         lastActive: firebase.firestore.FieldValue.serverTimestamp()
       });
-      await sendNotification(userId, '🎁 Nazaj! Prejel si ' + bonus + ' 🪙 ker 3+ dni nisi bil aktiven. Dobrodošel nazaj!');
+      await sendNotification(userId, '🎁 Nazaj! Prejel si ' + bonus + ' 🪙 ker 3+ dni nisi bil aktiven. Dobrodošel nazaj!', 'daily_bonus');
       return bonus;
     } else {
       // Just update lastActive on each login
@@ -2286,6 +2318,7 @@ function checkDailyBonus() {
   const last = currentUser.lastBonusDate;
   if (last !== today) {
     document.getElementById('bonusBanner').classList.remove('hidden');
+    maybeShowOSNotification('daily_bonus', '🎁 Dnevni bonus na voljo!', 'Danes lahko prevzameš svoj dnevni bonus kovancev.');
   }
 }
 
@@ -2327,6 +2360,7 @@ async function initHome() {
   setScreen('home');
   updateNavCoins();
   initNotifications();
+  maybeShowNotifPrompt();
 
   const switchBtn = document.getElementById('switchGroupBtn');
   if (switchBtn) switchBtn.classList.toggle('hidden', currentUser.role !== 'superadmin');
@@ -2784,6 +2818,19 @@ async function placeBet() {
 
       showToast(`Stava oddana! Čaka potrditev plačila: ${amount} € 🌶️`);
 
+      // Obvesti money managerja skupine, da čaka potrditev vplačila
+      // (npr. da lahko preveri/pobere denar na naslednjem treningu).
+      try {
+        const groupSnap = await db.collection('groups').doc(ev.groupId).get();
+        if (groupSnap.exists && groupSnap.data().managerId) {
+          await sendNotification(
+            groupSnap.data().managerId,
+            `🌶️ ${currentUser.name} je oddal stavo (${amount} €) na "${ev.question}" — čaka tvojo potrditev plačila.`,
+            'payment_pending'
+          );
+        }
+      } catch(e) { console.warn('Obveščanje managerja ni uspelo:', e.message); }
+
       const userBetDiv = document.getElementById('userBetInfo');
       userBetDiv.innerHTML = `⏳ Tvoja stava čaka na potrditev plačila: <span>${selectedOption}</span> — <span>${amount} €</span><br><span style="font-size:12px;color:var(--muted);">Money manager mora potrditi prejem denarja.</span>`;
       userBetDiv.classList.remove('hidden');
@@ -2879,6 +2926,21 @@ async function adminResetPassword() {
   } catch(e) {
     console.error(e);
     showToast('Napaka pri pošiljanju: ' + (e.message || e), true);
+  }
+}
+
+async function sendTestNotification() {
+  if (!currentUser) return;
+  try {
+    await sendNotification(
+      currentUser.id,
+      '🔔 To je testno obvestilo! Če ga vidiš tukaj in (če si to omogočil) dobiš pojavno OS obvestilo, vse deluje pravilno.',
+      'other'
+    );
+    showToast('Testno obvestilo poslano! Preveri zvonček 🔔');
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri pošiljanju testnega obvestila!', true);
   }
 }
 
@@ -3595,6 +3657,17 @@ async function ustvariStavo() {
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 
+  // Obvesti vse člane skupine (razen ustvarjalca), da je na voljo nova stava.
+  try {
+    const membersSnap = await db.collection('users').where('groupId', '==', groupId).get();
+    const members = membersSnap.docs.filter(function(d) { return !d.data()._placeholder && d.id !== currentAdmin.id; });
+    for (const m of members) {
+      await sendNotification(m.id, `🆕 Nova stava v "${groupName}": ${q}`, 'new_event');
+    }
+  } catch(e) {
+    console.warn('Obveščanje o novi stavi ni v celoti uspelo:', e.message);
+  }
+
   document.getElementById('newQ').value = '';
   document.getElementById('newOpt1').value = '';
   document.getElementById('newOpt2').value = '';
@@ -3640,6 +3713,14 @@ async function resolveEvent(eventId) {
     const winPool = betDocs.filter(d => d.data().option === winner).reduce((s, d) => s + d.data().amount, 0);
     const payoutRatio = winPool > 0 ? totalPool / winPool : 1;
 
+    // Za 🌶️ Spicy: managerId potrebujemo, da ga obvestimo, komu zdaj dolguje
+    // izplačilo (da lahko preveri npr. na naslednjem treningu).
+    let groupManagerId = null;
+    if (isSpicy) {
+      const groupSnapForNotif = await db.collection('groups').doc(ev.groupId).get();
+      if (groupSnapForNotif.exists) groupManagerId = groupSnapForNotif.data().managerId || null;
+    }
+
     // Vsaka stava se obravnava POSAMEZNO in NAPAKA PRI ENI (npr. redek
     // problem s pravicami na enem uporabniku) NE prekine obdelave ostalih —
     // prej je ena sama napaka podrla CELO zanko in ustavila razreševanje.
@@ -3663,9 +3744,12 @@ async function resolveEvent(eventId) {
             });
           }
           if (isWin) {
-            await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Money manager ti dolguje ${payout} € (čaka izplačilo).`);
+            await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Money manager ti dolguje ${payout} € (čaka izplačilo).`, 'bet_resolved');
+            if (groupManagerId) {
+              await sendNotification(groupManagerId, `💸 ${b.userName} je zmagal ${payout} € v stavi "${ev.question}" — dolguješ mu izplačilo.`, 'payout_pending');
+            }
           } else {
-            await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`);
+            await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`, 'bet_resolved');
           }
         } else {
           await db.collection('bets').doc(bd.id).update({ result: isWin ? 'win' : 'lose', payout });
@@ -3678,7 +3762,7 @@ async function resolveEvent(eventId) {
                 totalBets: (uSnap.data().totalBets || 0) + 1
               });
             }
-            await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Prejel si +${payout} 🪙`);
+            await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Prejel si +${payout} 🪙`, 'bet_resolved');
           } else {
             const uSnap = await db.collection('users').doc(b.userId).get();
             if (uSnap.exists) {
@@ -3686,7 +3770,7 @@ async function resolveEvent(eventId) {
                 totalBets: (uSnap.data().totalBets || 0) + 1
               });
             }
-            await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`);
+            await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`, 'bet_resolved');
           }
         }
       } catch(betErr) {
@@ -3782,9 +3866,11 @@ async function loadArchive() {
 // ===== NOTIFICATIONS =====
 
 
+var seenNotifIds = null; // null = še nismo videli seznama (prvič po prijavi) — takrat NE sprožimo OS obvestil za obstoječe zapise
 function initNotifications() {
   if (!currentUser) return;
   if (notifUnsub) notifUnsub();
+  seenNotifIds = null;
   notifUnsub = db.collection('notifications')
     .where('userId', '==', currentUser.id)
     .limit(20)
@@ -3797,6 +3883,18 @@ function initNotifications() {
           const tb = b.createdAt?.toDate?.() || new Date(0);
           return tb - ta;
         });
+
+      // Zaznaj SAMO novoprispele zapise (ne ob prvem nalaganju po prijavi)
+      // in zanje sproži OS-nivo obvestilo, glede na uporabnikove nastavitve.
+      if (seenNotifIds !== null) {
+        notifs.forEach(function(n) {
+          if (!seenNotifIds.has(n.id)) {
+            maybeShowOSNotification(n.type || 'other', '🐯 Tigers Stavljenje', n.message);
+          }
+        });
+      }
+      seenNotifIds = new Set(notifs.map(function(n) { return n.id; }));
+
       notifUnread = notifs.filter(n => !n.read).length;
       renderNotifications(notifs);
       const badge = document.getElementById('notifBadge');
@@ -3856,13 +3954,89 @@ async function clearNotifications() {
   } catch(e) { console.error(e); }
 }
 
-async function sendNotification(userId, message) {
+async function sendNotification(userId, message, type) {
   try {
     await db.collection('notifications').add({
-      userId, message, read: false,
+      userId, message, type: type || 'other', read: false,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   } catch(e) { console.error('sendNotif err:', e); }
+}
+
+// ===== OBVESTILA NA NIVOJU BRSKALNIKA/OS =====
+// Deluje, dokler je Tigers Stavljenje odprta v zavihku ali ozadju — ni prava
+// push obvestila (tista bi zahtevala Firebase Cloud Functions s plačljivim
+// Blaze planom). Uporabnik mora enkrat dovoliti obvestila (glej notifPermModal).
+var DEFAULT_NOTIF_SETTINGS = { daily_bonus: true, new_event: true, bet_resolved: true };
+
+function getNotifSettings() {
+  try {
+    var s = JSON.parse(localStorage.getItem('tigersNotifSettings') || '{}');
+    return Object.assign({}, DEFAULT_NOTIF_SETTINGS, s);
+  } catch(e) { return Object.assign({}, DEFAULT_NOTIF_SETTINGS); }
+}
+
+function setNotifSetting(type, enabled) {
+  try {
+    var s = getNotifSettings();
+    s[type] = enabled;
+    localStorage.setItem('tigersNotifSettings', JSON.stringify(s));
+  } catch(e) { console.warn('Nastavitev obvestil ni bilo mogoče shraniti:', e.message); }
+}
+
+function toggleNotifSettingsPanel() {
+  var panel = document.getElementById('notifSettingsPanel');
+  if (!panel) return;
+  var hidden = panel.classList.toggle('hidden');
+  if (!hidden) {
+    var s = getNotifSettings();
+    var dbEl = document.getElementById('notifSetting_daily_bonus');
+    var neEl = document.getElementById('notifSetting_new_event');
+    var brEl = document.getElementById('notifSetting_bet_resolved');
+    if (dbEl) dbEl.checked = s.daily_bonus;
+    if (neEl) neEl.checked = s.new_event;
+    if (brEl) brEl.checked = s.bet_resolved;
+  }
+}
+
+// Pokaže OS-nivo obvestilo, če je uporabnik to dovolil IN ni ugasnil te
+// konkretne vrste v nastavitvah.
+function maybeShowOSNotification(type, title, body) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  var settings = getNotifSettings();
+  if (settings.hasOwnProperty(type) && settings[type] === false) return;
+  try {
+    new Notification(title, { body: body, tag: type + '_' + Date.now() });
+  } catch(e) { console.warn('OS obvestilo ni uspelo:', e.message); }
+}
+
+// Popup, ki vpraša za dovoljenje (podoben "Add to Home Screen" popup-u).
+function maybeShowNotifPrompt() {
+  if (!('Notification' in window)) return; // brskalnik ne podpira Notification API
+  if (Notification.permission !== 'default') return; // že dovoljeno ali blokirano — ni kaj vprašati
+  try {
+    if (localStorage.getItem('tigersHideNotifPrompt') === '1') return;
+  } catch(e) { return; }
+  setTimeout(function() {
+    var modal = document.getElementById('notifPermModal');
+    if (modal) modal.classList.remove('hidden');
+  }, 1800);
+}
+
+function enableNotifications() {
+  document.getElementById('notifPermModal').classList.add('hidden');
+  if (!('Notification' in window)) return;
+  Notification.requestPermission().then(function(perm) {
+    if (perm === 'granted') showToast('Obvestila omogočena! 🔔');
+  });
+}
+
+function dismissNotifPrompt(forever) {
+  document.getElementById('notifPermModal').classList.add('hidden');
+  if (forever) {
+    try { localStorage.setItem('tigersHideNotifPrompt', '1'); } catch(e) {}
+  }
 }
 
 // ===== COMMENTS =====
@@ -4439,7 +4613,7 @@ async function unresolveEvent(eventId) {
         } else {
           showToast('⚠️ ' + b.userName + ' je bil že izplačan (' + b.payout + ' €) — to uredi ročno!', true);
         }
-        await sendNotification(b.userId, '↩️ Stava "' + (b.question || '') + '" je bila razveljavljena.');
+        await sendNotification(b.userId, '↩️ Stava "' + (b.question || '') + '" je bila razveljavljena.', 'bet_resolved');
       } else {
         // Vrni kovance samo tistim ki so izgubili (zmagovalci so jih že dobili nazaj pri resolve)
         if (b.result === 'lose') {
@@ -4460,7 +4634,7 @@ async function unresolveEvent(eventId) {
           }
         }
         await db.collection('bets').doc(bd.id).update({ result: 'pending', payout: 0 });
-        await sendNotification(b.userId, '↩️ Stava "' + (b.question || '') + '" je bila razveljavljena. Tvoji kovanci so bili vrnjeni!');
+        await sendNotification(b.userId, '↩️ Stava "' + (b.question || '') + '" je bila razveljavljena. Tvoji kovanci so bili vrnjeni!', 'bet_resolved');
       }
     }
 
@@ -4535,6 +4709,13 @@ async function changeWinner(eventId) {
     const winPool = freshBets.filter(b => b.option === newWinner).reduce((s, b) => s + b.amount, 0);
     const payoutRatio = winPool > 0 ? totalPool / winPool : 1;
 
+    // Za 🌶️ Spicy: managerId potrebujemo, da ga obvestimo o novih dolgovanih izplačilih.
+    let groupManagerId2 = null;
+    if (isSpicy) {
+      const groupSnapForNotif2 = await db.collection('groups').doc(ev.groupId).get();
+      if (groupSnapForNotif2.exists) groupManagerId2 = groupSnapForNotif2.data().managerId || null;
+    }
+
     for (const b of freshBets) {
       const isWin = b.option === newWinner;
       const payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
@@ -4547,9 +4728,12 @@ async function changeWinner(eventId) {
         if (isWin) {
           const uSnap = await db.collection('users').doc(b.userId).get();
           if (uSnap.exists) await db.collection('users').doc(b.userId).update({ wins: (uSnap.data().wins || 0) + 1 });
-          await sendNotification(b.userId, '🔄 Zmagovalec spremenjen! Nova zmaga: "' + newWinner + '" — money manager ti dolguje ' + payout + ' € (čaka izplačilo).');
+          await sendNotification(b.userId, '🔄 Zmagovalec spremenjen! Nova zmaga: "' + newWinner + '" — money manager ti dolguje ' + payout + ' € (čaka izplačilo).', 'bet_resolved');
+          if (groupManagerId2) {
+            await sendNotification(groupManagerId2, '💸 ' + b.userName + ' je zmagal ' + payout + ' € v stavi "' + ev.question + '" (spremenjen zmagovalec) — dolguješ mu izplačilo.', 'payout_pending');
+          }
         } else {
-          await sendNotification(b.userId, '🔄 Zmagovalec spremenjen. Nov zmagovalec je: ' + newWinner);
+          await sendNotification(b.userId, '🔄 Zmagovalec spremenjen. Nov zmagovalec je: ' + newWinner, 'bet_resolved');
         }
       } else {
         await db.collection('bets').doc(b.id).update({ result: isWin ? 'win' : 'lose', payout });
@@ -4561,9 +4745,9 @@ async function changeWinner(eventId) {
               wins: (uSnap.data().wins || 0) + 1
             });
           }
-          await sendNotification(b.userId, '🔄 Zmagovalec spremenjen! Nova zmaga: "' + newWinner + '" +' + payout + ' 🪙');
+          await sendNotification(b.userId, '🔄 Zmagovalec spremenjen! Nova zmaga: "' + newWinner + '" +' + payout + ' 🪙', 'bet_resolved');
         } else {
-          await sendNotification(b.userId, '🔄 Zmagovalec spremenjen. Nov zmagovalec je: ' + newWinner);
+          await sendNotification(b.userId, '🔄 Zmagovalec spremenjen. Nov zmagovalec je: ' + newWinner, 'bet_resolved');
         }
       }
     }
