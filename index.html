@@ -970,6 +970,11 @@
 </head>
 <body>
 
+<!-- Footer z verzijo appa — fiksen, viden na VSEH straneh (izven .screen sistema) -->
+<div id="appFooter" style="position:fixed;bottom:0;left:0;right:0;z-index:500;text-align:center;padding:4px 8px;font-family:Rajdhani,sans-serif;font-size:11px;color:rgba(255,255,255,0.28);pointer-events:none;background:linear-gradient(to top, rgba(0,0,0,0.5), transparent);">
+  🐯 Tigers Stavljenje <span id="appFooterVersion"></span>
+</div>
+
 <!-- ===== LOADING (prikrije "flash" landinga, dokler ne vemo, ali si že prijavljen) ===== -->
 <div id="loadingScreen" class="screen active" style="align-items:center;justify-content:center;background:var(--black);">
   <div class="paw-icon" style="animation:pulse 1.4s ease-in-out infinite;">🐯</div>
@@ -1721,6 +1726,8 @@ var selectedTopupPkg = null;
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
 var APP_VERSION = '2026-09-08.16';
+var appFooterVersionEl = document.getElementById('appFooterVersion');
+if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
