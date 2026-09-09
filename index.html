@@ -1720,7 +1720,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.6';
+var APP_VERSION = '2026-09-08.7';
 
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
@@ -2279,18 +2279,25 @@ function logout() {
 // Do takrat, ko Firebase to preveri (kratek trenutek), je viden samo
 // #loadingScreen — landing se pokaže šele, ko zares vemo, da nihče ni
 // prijavljen, da ni "flash-a" landing strani pred samodejno prijavo.
+//
+// POMEMBNO: ta poslušalec se odzove SAMO PRVIČ (ob nalaganju strani, ko
+// preverjamo obstoječo/zapomnjeno sejo). Vsaka NASLEDNJA sprememba (nova
+// registracija, prijava, odjava) je že eksplicitno obravnavana v
+// doLogin/doRegister/verify2FACode/logout — tem NE prepuščamo tudi temu
+// poslušalcu, ker se lahko sproži nepredvidljivo hitro (celo še preden
+// naš `await createUserWithEmailAndPassword(...)` dobi nazaj nadzor), kar
+// je prej povzročilo, da je sredi registracije "tiho" odjavil uporabnika.
 var authCheckDone = false;
 auth.onAuthStateChanged(function(user) {
+  if (authCheckDone) return; // ignoriraj vse po prvem klicu
   authCheckDone = true;
   if (!user) { setScreen('landing'); return; }
-  if (currentUser) return; // že obdelano (ravno prijavljen skozi doLogin/doRegister)
-  if (pendingUid) return;  // ravno teče 2FA za registracijo — ne mešaj vmes
   loadCurrentUserAndEnter(user.uid);
 });
 // Varnostna mreža: če se npr. zaradi slabe povezave Firebase ne odzove
 // dovolj hitro, po 4s vseeno pokažemo landing namesto večnega nalaganja.
 setTimeout(function() {
-  if (!authCheckDone) setScreen('landing');
+  if (!authCheckDone) { authCheckDone = true; setScreen('landing'); }
 }, 4000);
 
 // ===== DAILY BONUS =====
