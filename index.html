@@ -1720,7 +1720,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.13';
+var APP_VERSION = '2026-09-08.15';
 
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
@@ -5013,17 +5013,56 @@ function checkForUpdate() {
 
 function showUpdateBanner() {
   if (document.getElementById('updateBanner')) return;
+
+  if (isIOSDevice()) {
+    // Na iOS mali trak na vrhu ni dovolj opazen (in ga je lahko zgrešiti,
+    // če je app v standalone načinu brez naslovne vrstice) — pokažemo
+    // celozaslonski popup, ki ga ni mogoče spregledati.
+    var overlay = document.createElement('div');
+    overlay.id = 'updateBanner';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;';
+    overlay.innerHTML =
+      '<div style="font-size:56px;margin-bottom:16px;">📦</div>' +
+      '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:1px;color:#fff;margin-bottom:10px;">NOVA VERZIJA NA VOLJO</div>' +
+      '<div style="font-family:Rajdhani,sans-serif;font-size:16px;color:var(--muted);margin-bottom:28px;max-width:320px;">Tigers Stavljenje ima novo verzijo. Klikni spodnji gumb, da jo naložiš.</div>' +
+      '<button style="background:var(--orange);color:#000;border:none;padding:16px 40px;font-weight:800;font-size:18px;font-family:Rajdhani,sans-serif;cursor:pointer;border-radius:10px;" onclick="forceHardReload()">OSVEŽI ZDAJ</button>';
+    document.body.appendChild(overlay);
+    return;
+  }
+
   var bar = document.createElement('div');
   bar.id = 'updateBanner';
   bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--orange);color:#000;padding:10px 16px;text-align:center;font-weight:700;font-family:Rajdhani,sans-serif;font-size:14px;display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,0.4);';
   bar.innerHTML = '📦 Na voljo je nova verzija Tigers Stavljenje!' +
-    '<button style="background:#000;color:var(--orange);border:none;padding:6px 16px;font-weight:700;cursor:pointer;border-radius:6px;font-size:14px;" onclick="location.reload()">OSVEŽI</button>';
+    '<button style="background:#000;color:var(--orange);border:none;padding:6px 16px;font-weight:700;cursor:pointer;border-radius:6px;font-size:14px;" onclick="forceHardReload()">OSVEŽI</button>';
   document.body.prepend(bar);
 }
 
-setTimeout(checkForUpdate, 3000);
+function forceHardReload() {
+  // location.reload() na iOS Add-to-Home-Screen ni vedno zanesljiv proti
+  // predpomnjenju — namesto tega preusmerimo na URL s svežim cache-busting
+  // parametrom, kar prisili popolnoma nov (ne predpomnjen) prenos.
+  window.location.href = location.pathname + '?_reload=' + Date.now();
+}
+
+// Preverjanje sprožimo ob VEČ različnih trenutkih, ker se iOS Add-to-Home-
+// Screen aplikacije obnašajo drugače kot navaden zavihek brskalnika: ko jih
+// daš v ozadje, iOS pogosto POPOLNOMA ustavi JS izvajanje (varčevanje z
+// baterijo), in ko jih znova odpreš, samo "obudi" zamrznjeno stanje namesto
+// da bi stran resnično na novo naložil — kar pomeni, da se navaden
+// setTimeout/setInterval, ki teče samo "od začetka", morda nikoli več ne
+// sproži. Zato preverimo ob VSAKI od teh priložnosti:
+checkForUpdate(); // takoj ob nalaganju
 document.addEventListener('visibilitychange', function() {
   if (!document.hidden) checkForUpdate();
+});
+window.addEventListener('pageshow', function() {
+  // Ključno za iOS: ta dogodek se sproži tudi, ko se stran "obudi" iz
+  // zamrznjenega/bfcache stanja, ne samo ob pravem novem nalaganju.
+  checkForUpdate();
+});
+window.addEventListener('focus', function() {
+  checkForUpdate();
 });
 setInterval(checkForUpdate, 5 * 60 * 1000);
 
