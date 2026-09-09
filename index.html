@@ -1720,7 +1720,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.5';
+var APP_VERSION = '2026-09-08.6';
 
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
@@ -2016,6 +2016,14 @@ async function doRegister() {
   try {
     var cred = await auth.createUserWithEmailAndPassword(email, pass);
     var uid = cred.user.uid;
+
+    // KRITIČNO: pendingUid nastavimo TAKOJ, še preden karkoli drugega
+    // čakamo (npr. branje skupine) — sicer lahko onAuthStateChanged (ki se
+    // sproži takoj ob prijavi novega računa) zgreši, da je 2FA v teku, misli
+    // da gre za "profil ni najden" in nas tiho odjavi sredi registracije.
+    pendingUid = uid;
+    pendingIsRegistration = true;
+
     var groupSnap = await db.collection('groups').doc(groupId).get();
     var groupName = groupSnap.exists ? groupSnap.data().name : '—';
 
@@ -2034,6 +2042,8 @@ async function doRegister() {
     beginTwoFactor(uid, email, true);
   } catch(e) {
     console.error(e);
+    pendingUid = null;
+    pendingIsRegistration = false;
     document.getElementById('regPass').value = '';
     errEl.textContent = friendlyAuthError(e);
   }
@@ -2211,7 +2221,12 @@ function cancelTwoFA() {
   setScreen('landing');
 }
 
+var authEnterInProgress = false;
 async function loadCurrentUserAndEnter(uid) {
+  // Varnostna mreža: prepreči, da bi onAuthStateChanged in eksplicitni klic
+  // (iz doLogin/verify2FACode) hkrati tekla dvakrat za isti uid.
+  if (authEnterInProgress) return;
+  authEnterInProgress = true;
   try {
     var snap = await db.collection('users').doc(uid).get();
     if (!snap.exists) {
@@ -2242,6 +2257,8 @@ async function loadCurrentUserAndEnter(uid) {
     currentUser = null;
     try { await auth.signOut(); } catch(e2) {}
     setScreen('landing');
+  } finally {
+    authEnterInProgress = false;
   }
 }
 
