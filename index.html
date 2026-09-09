@@ -1720,7 +1720,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.12';
+var APP_VERSION = '2026-09-08.13';
 
 var STARTING_COINS = 500;
 var DAILY_BONUS = 50;
@@ -3697,8 +3697,9 @@ async function resolveEvent(eventId) {
     location.reload();
   } catch(e) {
     console.error('Napaka pri razreševanju stave:', e);
+    console.error('DIAGNOSTIKA — eventId, ki ga poskušamo urediti:', eventId);
     console.error('DIAGNOSTIKA — currentAdmin (predpomnjeno v brskalniku):', JSON.stringify(currentAdmin));
-    console.error('DIAGNOSTIKA — event.groupId (dokument, ki ga poskušamo urediti):', ev.groupId, '| event.spicyMode:', ev.spicyMode);
+    console.error('DIAGNOSTIKA — event.groupId (iz LOKALNEGA allEvents seznama):', ev.groupId, '| event.spicyMode:', ev.spicyMode);
     console.error('DIAGNOSTIKA — REALNA Firebase Auth seja (auth.currentUser):', auth.currentUser ? ('uid=' + auth.currentUser.uid + ', email=' + auth.currentUser.email) : 'NIHČE NI PRIJAVLJEN (auth.currentUser je null)');
     console.error('DIAGNOSTIKA — se currentAdmin.id ujema z auth.currentUser.uid?', auth.currentUser && currentAdmin.id === auth.currentUser.uid);
     try {
@@ -3706,6 +3707,12 @@ async function resolveEvent(eventId) {
       console.error('DIAGNOSTIKA — SVEŽE stanje iz Firestore za trenutnega managerja (users/' + currentAdmin.id + '):', JSON.stringify(freshMe.exists ? freshMe.data() : 'DOKUMENT NE OBSTAJA'));
     } catch(diagErr) {
       console.error('DIAGNOSTIKA — niti branje lastnega profila ni uspelo:', diagErr.message);
+    }
+    try {
+      var freshEvent = await db.collection('events').doc(eventId).get();
+      console.error('DIAGNOSTIKA — SVEŽE stanje SAMEGA DOGODKA iz Firestore (events/' + eventId + '):', JSON.stringify(freshEvent.exists ? freshEvent.data() : '❗ DOKUMENT NE OBSTAJA — to je najverjetneje pravi vzrok!'));
+    } catch(diagErr2) {
+      console.error('DIAGNOSTIKA — niti branje samega dogodka ni uspelo:', diagErr2.message);
     }
     showToast('Napaka pri razreševanju: ' + (e.message || e) + ' — poglej konzolo (F12), tam je zdaj podrobna diagnostika', true);
     if (btn) { btn.disabled = false; btn.textContent = 'RAZREŠI'; }
@@ -3956,8 +3963,9 @@ async function deleteEvent(eventId) {
     loadAdminStats();
   } catch(e) {
     console.error('Napaka pri brisanju stave:', e);
+    console.error('DIAGNOSTIKA — eventId, ki ga poskušamo izbrisati:', eventId);
     console.error('DIAGNOSTIKA — currentAdmin (predpomnjeno v brskalniku):', JSON.stringify(currentAdmin));
-    console.error('DIAGNOSTIKA — event.groupId (dogodek, ki ga poskušamo izbrisati):', ev ? ev.groupId : 'NI NAJDEN V allEvents');
+    console.error('DIAGNOSTIKA — event.groupId (iz LOKALNEGA allEvents seznama):', ev ? ev.groupId : 'NI NAJDEN V allEvents');
     console.error('DIAGNOSTIKA — REALNA Firebase Auth seja (auth.currentUser):', auth.currentUser ? ('uid=' + auth.currentUser.uid + ', email=' + auth.currentUser.email) : 'NIHČE NI PRIJAVLJEN (auth.currentUser je null)');
     console.error('DIAGNOSTIKA — se currentAdmin.id ujema z auth.currentUser.uid?', auth.currentUser && currentAdmin.id === auth.currentUser.uid);
     try {
@@ -3965,6 +3973,21 @@ async function deleteEvent(eventId) {
       console.error('DIAGNOSTIKA — SVEŽE stanje iz Firestore za trenutnega managerja (users/' + currentAdmin.id + '):', JSON.stringify(freshMe.exists ? freshMe.data() : 'DOKUMENT NE OBSTAJA'));
     } catch(diagErr) {
       console.error('DIAGNOSTIKA — niti branje lastnega profila ni uspelo:', diagErr.message);
+    }
+    try {
+      var freshEvent = await db.collection('events').doc(eventId).get();
+      console.error('DIAGNOSTIKA — SVEŽE stanje SAMEGA DOGODKA iz Firestore (events/' + eventId + '):', JSON.stringify(freshEvent.exists ? freshEvent.data() : '❗ DOKUMENT NE OBSTAJA — to je najverjetneje pravi vzrok!'));
+    } catch(diagErr2) {
+      console.error('DIAGNOSTIKA — niti branje samega dogodka ni uspelo:', diagErr2.message);
+    }
+    try {
+      var freshBets = await db.collection('bets').where('eventId', '==', eventId).get();
+      freshBets.docs.forEach(function(d) {
+        console.error('DIAGNOSTIKA — stava ' + d.id + ':', JSON.stringify(d.data()));
+      });
+      if (freshBets.empty) console.error('DIAGNOSTIKA — ni najdenih stav za ta eventId.');
+    } catch(diagErr3) {
+      console.error('DIAGNOSTIKA — branje stav ni uspelo:', diagErr3.message);
     }
     showToast('Napaka pri brisanju: ' + (e.message || e) + ' — poglej konzolo (F12), tam je zdaj podrobna diagnostika', true);
   }
