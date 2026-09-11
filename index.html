@@ -1110,6 +1110,7 @@
     <!-- Zavihki -->
     <div class="home-tabs">
       <button class="home-tab active" onclick="switchHomeTab('htab-stave')">🎯 STAVE</button>
+      <button class="home-tab" onclick="switchHomeTab('htab-fantasy')">🏈 FANTASY</button>
       <button class="home-tab" onclick="switchHomeTab('htab-lestvica')">🏆 LESTVICA</button>
       <button class="home-tab" onclick="switchHomeTab('htab-arhiv')">📦 ARHIV</button>
       <button class="home-tab" onclick="switchHomeTab('htab-shop')">🛒 SHOP</button>
@@ -1126,6 +1127,43 @@
       <div class="section-sub">Zadnjih 5 stavkov</div>
       <div id="myBetsWrap">
         <div style="color:var(--muted);font-size:14px;">Še nimaš stavkov.</div>
+      </div>
+    </div>
+
+    <!-- Tab: Fantasy Football -->
+    <div class="home-tab-content" id="htab-fantasy">
+      <div id="fantasyNoTeam">
+        <div class="section-title">🏈 SESTAVI SVOJO FANTASY EKIPO</div>
+        <div class="section-sub" id="fantasyModeExplain">Nalaganje nastavitev...</div>
+        <div style="margin:16px 0;">
+          <div class="field-label" style="margin-bottom:6px;">IME EKIPE</div>
+          <input type="text" class="input-field" id="myFantasyTeamName" placeholder="npr. Janezovi Zmaji">
+        </div>
+        <div class="field-label" style="margin-bottom:8px;" id="fantasyPickCount">Izbranih: 0 / 5</div>
+        <div id="fantasyPlayerPicker" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;margin-bottom:16px;">
+          <div style="color:var(--muted);font-size:14px;">Nalaganje igralcev...</div>
+        </div>
+        <button class="btn-main" onclick="createMyFantasyTeam()">USTVARI EKIPO</button>
+      </div>
+
+      <div id="fantasyHasTeam" class="hidden">
+        <div class="section-title" id="myFantasyTeamNameDisplay">—</div>
+        <div style="font-size:15px;color:var(--orange);font-weight:800;margin-bottom:16px;" id="myFantasyTotalPoints">0 točk skupaj</div>
+
+        <div class="field-label" style="margin-bottom:10px;">📅 DANAŠNJA TEKMA</div>
+        <div id="fantasyTodayMatchup" style="margin-bottom:24px;"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
+
+        <div class="field-label" style="margin-bottom:10px;">MOJA EKIPA</div>
+        <div id="myFantasyRosterList" style="margin-bottom:12px;"></div>
+        <button class="btn-sm" onclick="showEditFantasyTeam()">✏️ Uredi ekipo</button>
+
+        <div class="field-label" style="margin:24px 0 10px;">ZGODOVINA TEKEM</div>
+        <div id="fantasyMatchupHistory"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
+      </div>
+
+      <div style="border-top:2px solid var(--border);margin-top:28px;padding-top:20px;">
+        <div class="field-label" style="margin-bottom:10px;">🎲 DANAŠNJE TEKME — STAVI NA ZMAGOVALCA</div>
+        <div id="fantasyBettableMatchups"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
       </div>
     </div>
 
@@ -1315,6 +1353,7 @@
       <button class="admin-tab" onclick="switchTab('tab-igralci')">👥 IGRALCI</button>
       <button class="admin-tab" id="tab-skupine-btn" style="display:none;" onclick="switchTab('tab-skupine')">🏘️ SKUPINE</button>
       <button class="admin-tab" id="tab-revenue-btn" style="display:none;" onclick="switchTab('tab-revenue')">📊 REVENUE</button>
+      <button class="admin-tab" id="tab-fantasy-btn" style="display:none;" onclick="switchTab('tab-fantasy')">🏈 FANTASY</button>
       <button class="admin-tab" id="tab-admini-btn" style="display:none;" onclick="switchTab('tab-admini')">🔐 ADMINI</button>
     </div>
 
@@ -1579,6 +1618,151 @@
       </div>
     </div>
 
+    <!-- Tab: Fantasy Football (superadmin only) -->
+    <div class="admin-tab-content" id="tab-fantasy">
+      <div class="admin-section">
+        <div class="section-title" style="font-size:22px;margin-bottom:6px;">🏈 FANTASY FOOTBALL</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Baza igralcev kluba, tedenske statistike, sistem točkovanja, in DNEVNE fantasy tekme med igralci.</div>
+
+        <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;">
+          <button class="btn-sm fantasy-subtab-btn active" id="fsubBtn_players" onclick="switchFantasySubtab('players')">👤 IGRALCI</button>
+          <button class="btn-sm fantasy-subtab-btn" id="fsubBtn_stats" onclick="switchFantasySubtab('stats')">📊 STATISTIKE</button>
+          <button class="btn-sm fantasy-subtab-btn" id="fsubBtn_scoring" onclick="switchFantasySubtab('scoring')">⚙️ TOČKOVANJE</button>
+          <button class="btn-sm fantasy-subtab-btn" id="fsubBtn_teams" onclick="switchFantasySubtab('teams')">🏆 EKIPE & TEKME</button>
+        </div>
+
+        <!-- IGRALCI -->
+        <div id="fantasySubPlayers">
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div class="field-label" style="margin-bottom:12px;">➕ DODAJ IGRALCA</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+              <div style="flex:2;min-width:160px;">
+                <div class="field-label" style="font-size:12px;">IME</div>
+                <input type="text" class="input-field" id="newFantasyPlayerName" placeholder="npr. Janez Novak" style="margin-bottom:0;">
+              </div>
+              <div style="flex:1;min-width:110px;">
+                <div class="field-label" style="font-size:12px;">POZICIJA</div>
+                <select class="resolve-select" id="newFantasyPlayerPos" style="width:100%;height:42px;">
+                  <option value="QB">QB</option>
+                  <option value="RB">RB</option>
+                  <option value="WR">WR</option>
+                  <option value="TE">TE</option>
+                  <option value="K">K</option>
+                  <option value="DEF">DEF</option>
+                </select>
+              </div>
+              <button class="btn-resolve" style="height:42px;" onclick="addFantasyPlayer()">+ DODAJ</button>
+            </div>
+          </div>
+          <div class="field-label" style="margin-bottom:10px;">SEZNAM IGRALCEV</div>
+          <div id="fantasyPlayersList"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
+        </div>
+
+        <!-- STATISTIKE -->
+        <div id="fantasySubStats" class="hidden">
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div class="field-label" style="margin-bottom:12px;">📤 UVOZI IZ TABELE (CSV)</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Stolpci morajo ustrezati predlogi. Če je ime igralca novo (ali podobno obstoječemu), te app vpraša, preden karkoli doda.</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <input type="file" id="fantasyCsvInput" accept=".csv" style="color:var(--text);">
+              <button class="btn-resolve" onclick="handleFantasyCsvUpload()">UVOZI</button>
+              <button class="btn-sm" onclick="downloadFantasyCsvTemplate()">⬇️ PRENESI PREDLOGO</button>
+            </div>
+            <div id="fantasyCsvStatus" style="margin-top:10px;font-size:13px;"></div>
+          </div>
+
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div class="field-label" style="margin-bottom:12px;">✍️ ROČNI VNOS TEDENSKE STATISTIKE</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
+              <div>
+                <div class="field-label" style="font-size:11px;">IGRALEC</div>
+                <select class="resolve-select" id="statPlayerId" style="width:100%;height:38px;"></select>
+              </div>
+              <div><div class="field-label" style="font-size:11px;">TEDEN</div><input type="number" class="input-field" id="statWeek" placeholder="1" min="1" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Passing Yds</div><input type="number" class="input-field" id="stat_passingYards" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Passing TD</div><input type="number" class="input-field" id="stat_passingTDs" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">INT</div><input type="number" class="input-field" id="stat_interceptions" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Rushing Yds</div><input type="number" class="input-field" id="stat_rushingYards" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Rushing TD</div><input type="number" class="input-field" id="stat_rushingTDs" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Receptions</div><input type="number" class="input-field" id="stat_receptions" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Receiving Yds</div><input type="number" class="input-field" id="stat_receivingYards" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Receiving TD</div><input type="number" class="input-field" id="stat_receivingTDs" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Fumbles Lost</div><input type="number" class="input-field" id="stat_fumblesLost" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">FG Made</div><input type="number" class="input-field" id="stat_fieldGoalsMade" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">XP Made</div><input type="number" class="input-field" id="stat_extraPointsMade" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Def TD</div><input type="number" class="input-field" id="stat_defTDs" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Sacks</div><input type="number" class="input-field" id="stat_sacks" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Def INT</div><input type="number" class="input-field" id="stat_defInterceptions" value="0" style="margin-bottom:0;"></div>
+              <div><div class="field-label" style="font-size:11px;">Fumble Rec</div><input type="number" class="input-field" id="stat_fumbleRecoveries" value="0" style="margin-bottom:0;"></div>
+            </div>
+            <button class="btn-resolve" style="margin-top:14px;" onclick="saveFantasyStatEntry()">SHRANI STATISTIKO</button>
+          </div>
+
+          <div class="field-label" style="margin-bottom:10px;">ZADNJE VNESENE STATISTIKE</div>
+          <div id="fantasyStatsList"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
+        </div>
+
+        <!-- TOČKOVANJE -->
+        <div id="fantasySubScoring" class="hidden">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Standardna PPR pravila (prilagojena tvoji ligi kasneje). Sprememba velja za VSE prihodnje izračune točk.</div>
+          <div id="fantasyScoringForm" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:16px;">
+            <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+          </div>
+          <button class="btn-resolve" onclick="saveFantasyScoring()">SHRANI TOČKOVANJE</button>
+        </div>
+
+        <!-- EKIPE & TEKME -->
+        <div id="fantasySubTeams" class="hidden">
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div class="field-label" style="margin-bottom:12px;">⚙️ NASTAVITVE LIGE</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:14px;">
+              <div>
+                <div class="field-label" style="font-size:12px;">NAČIN SESTAVLJANJA EKIP</div>
+                <select class="resolve-select" id="fantasySettingRosterMode" style="width:100%;height:42px;">
+                  <option value="free">Prost izbor (isti igralec v več ekipah)</option>
+                  <option value="draft">Draft (vsak igralec samo v ENI ekipi)</option>
+                </select>
+              </div>
+              <div>
+                <div class="field-label" style="font-size:12px;">ŠTEVILO IGRALCEV V EKIPI</div>
+                <input type="number" class="input-field" id="fantasySettingRosterSize" value="5" min="1" style="margin-bottom:0;">
+              </div>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;font-size:14px;">
+              <input type="checkbox" id="fantasySettingReleased" style="width:18px;height:18px;cursor:pointer;">
+              🚀 <b>Objavi Fantasy Football</b> — izklopi "v testiranju" popup za VSE igralce
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;font-size:14px;">
+              <input type="checkbox" id="fantasySettingSpicy" style="width:18px;height:18px;cursor:pointer;">
+              🌶️ <b>Spicy Mode</b> — stave na tekme v pravem denarju (€) namesto kovancev
+            </label>
+            <button class="btn-resolve" onclick="saveFantasySettings()">SHRANI NASTAVITVE</button>
+          </div>
+
+          <div style="background:var(--card2);border:1px solid var(--orange);border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div class="field-label" style="margin-bottom:8px;">📅 DNEVNE TEKME</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Vsak dan naključno spariš vse ekipe. Tekme ostanejo odprte za stave, dokler jih ne razrešiš — takrat se zaklenejo trenutne kumulativne točke, določi zmagovalec, in razrešijo vse stave.</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn-confirm" style="margin-top:0;" onclick="generateDailyFantasyMatchups()">🎲 GENERIRAJ DANAŠNJE TEKME</button>
+              <button class="btn-resolve" onclick="resolveFantasyMatchups()">🏁 RAZREŠI DANAŠNJE TEKME</button>
+            </div>
+          </div>
+
+          <div class="field-label" style="margin-bottom:10px;">DANAŠNJE TEKME</div>
+          <div id="fantasyAdminTodayMatchups" style="margin-bottom:24px;"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
+
+          <div class="field-label" style="margin-bottom:10px;">⏳ ČAKAJOČA PLAČILA (🌶️ Spicy)</div>
+          <div id="fantasyPendingPayments" style="margin-bottom:24px;"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
+
+          <div class="field-label" style="margin-bottom:10px;">💸 ČAKAJOČA IZPLAČILA (🌶️ Spicy)</div>
+          <div id="fantasyPendingPayouts" style="margin-bottom:24px;"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
+
+          <div class="field-label" style="margin-bottom:10px;">VSE EKIPE</div>
+          <div id="fantasyAdminTeamsList"><div style="color:var(--muted);font-size:14px;">Nalaganje...</div></div>
+        </div>
+      </div>
+    </div>
+
 <!-- Admin Login Modal -->
     <!-- Tab: Admini (superadmin only) -->
     <div class="admin-tab-content" id="tab-admini">
@@ -1684,6 +1868,49 @@
       <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
     </div>
     <button class="btn-sm" style="width:100%;text-align:center;" onclick="document.getElementById('switchGroupModal').classList.add('hidden')">PREKLIČI</button>
+  </div>
+</div>
+
+<!-- Fantasy: potrditev novega/podobnega igralca med CSV uvozom -->
+<div id="fantasyNewPlayerModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:420px;">
+    <h2>🆕 NEZNAN IGRALEC</h2>
+    <p>V tabeli je ime "<b id="fnpName" style="color:var(--orange);">—</b>", ki ga ni natančno v bazi.</p>
+    <div id="fnpSuggestions" style="margin:14px 0;display:flex;flex-direction:column;gap:8px;"></div>
+    <button class="btn-confirm" onclick="fantasyNewPlayerConfirmAdd()">➕ DODAJ KOT POPOLNOMA NOVEGA IGRALCA</button>
+    <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="fantasyNewPlayerSkip()">⏭️ PRESKOČI TO VRSTICO</button>
+  </div>
+</div>
+
+<!-- Fantasy Football: "v testiranju" popup -->
+<div id="fantasyComingSoonModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:380px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:10px;">🚧</div>
+    <h2>FANTASY FOOTBALL</h2>
+    <p>Ta funkcija je še v testiranju. Kmalu pride! 🏈</p>
+    <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="document.getElementById('fantasyComingSoonModal').classList.add('hidden'); switchHomeTab('htab-stave');">V REDU</button>
+    <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;">
+      <div class="field-label" style="margin-bottom:6px;font-size:11px;">TESTNO GESLO</div>
+      <input type="password" class="input-field" id="fantasyTestPassInput" placeholder="Geslo za testiranje..." style="margin-bottom:8px;" onkeydown="if(event.key==='Enter') unlockFantasyTest()">
+      <button class="btn-sm" style="width:100%;text-align:center;" onclick="unlockFantasyTest()">ODKLENI</button>
+    </div>
+  </div>
+</div>
+
+<!-- Fantasy: modal za oddajo stave na tekmo -->
+<div id="fantasyBetModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:380px;">
+    <h2>🏈 STAVI NA TEKMO</h2>
+    <p id="fantasyBetMatchupLabel" style="text-align:center;">— proti —</p>
+    <div style="display:flex;gap:10px;margin:14px 0;">
+      <button class="opt-btn" id="fantasyBetTeam1Btn" onclick="selectFantasyBetPick('team1')" style="flex:1;">—</button>
+      <button class="opt-btn" id="fantasyBetTeam2Btn" onclick="selectFantasyBetPick('team2')" style="flex:1;">—</button>
+    </div>
+    <div class="field-label" style="margin-bottom:6px;" id="fantasyBetAmountLabel">ZNESEK (kovanci)</div>
+    <input type="number" class="input-field" id="fantasyBetAmount" placeholder="50" min="1">
+    <div class="error-msg" id="fantasyBetError"></div>
+    <button class="btn-confirm" onclick="submitFantasyBet()">POSTAVI STAVO</button>
+    <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="document.getElementById('fantasyBetModal').classList.add('hidden')">PREKLIČI</button>
   </div>
 </div>
 
@@ -1803,7 +2030,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.22';
+var APP_VERSION = '2026-09-08.27';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -1838,12 +2065,13 @@ var PERM = {
   ADMINS:   'admins',
   SETTINGS: 'settings',
   GROUPS:   'groups',
-  REVENUE:  'revenue'
+  REVENUE:  'revenue',
+  FANTASY:  'fantasy'
 };
 
 // Role definitions — add new roles here in future
 var ROLES = {
-  superadmin: { label: '👑 Super Admin', permissions: ['events','coins','players','admins','settings','groups','revenue'] },
+  superadmin: { label: '👑 Super Admin', permissions: ['events','coins','players','admins','settings','groups','revenue','fantasy'] },
   event_admin: { label: '🎯 Event Admin', permissions: ['events'] },
   manager: { label: '🧑‍💼 Manager skupine', permissions: ['events'] }
 };
@@ -2163,9 +2391,10 @@ async function submitForgotPassword() {
   if (!email) { errEl.textContent = 'Vpiši email!'; return; }
 
   try {
-    var settings = getResetActionCodeSettings();
-    if (settings) await auth.sendPasswordResetEmail(email, settings);
-    else await auth.sendPasswordResetEmail(email);
+    // Kam povezava pelje, se zdaj nastavi centralno v Firebase Console
+    // (Authentication → Templates → "Customize action URL") — zato tukaj
+    // ni treba pošiljati nobenih dodatnih nastavitev.
+    await auth.sendPasswordResetEmail(email);
 
     document.getElementById('forgotPassSentEmail').textContent = email;
     document.getElementById('forgotPassStep1').classList.add('hidden');
@@ -2201,34 +2430,13 @@ async function resendForgotPassword() {
   var email = document.getElementById('forgotPassSentEmail').textContent;
   if (!email || email === '—') return;
   try {
-    var settings = getResetActionCodeSettings();
-    if (settings) await auth.sendPasswordResetEmail(email, settings);
-    else await auth.sendPasswordResetEmail(email);
+    await auth.sendPasswordResetEmail(email);
     showToast('Email ponovno poslan! 📧');
     startForgotPassResendCooldown();
   } catch(e) {
     console.error('sendPasswordResetEmail napaka:', e.code, e.message);
     showToast(friendlyResetError(e), true);
   }
-}
-
-// Povezava v emailu vodi NAZAJ v to isto app (ne na generično Firebase
-// stran) — Firebase samo doda ?mode=resetPassword&oobCode=... na URL.
-function getResetActionCodeSettings() {
-  var origin = window.location.origin;
-  // Če testiraš prek file:// (dvoklik na datoteko) ali kakšnega drugega
-  // neveljavnega izvora, origin ni prava http(s) domena — Firebase bi tak
-  // "url" zavrnil in NE poslal emaila sploh. V tem primeru se varno vrnemo
-  // na privzet Firebase tok (email se še vedno pošlje, samo brez lepega
-  // preusmerjanja nazaj v app).
-  if (!origin || origin === 'null' || origin.indexOf('http') !== 0) {
-    console.warn('getResetActionCodeSettings: neveljaven origin (' + origin + ') — uporabljam privzet Firebase reset tok namesto in-app.');
-    return null;
-  }
-  return {
-    url: origin + window.location.pathname,
-    handleCodeInApp: true
-  };
 }
 
 function friendlyResetError(e) {
@@ -2522,9 +2730,10 @@ function switchHomeTab(tabId) {
   document.querySelectorAll('.home-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.home-tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
-  const tabs = ['htab-stave', 'htab-lestvica', 'htab-arhiv', 'htab-shop', 'htab-profil'];
+  const tabs = ['htab-stave', 'htab-fantasy', 'htab-lestvica', 'htab-arhiv', 'htab-shop', 'htab-profil'];
   document.querySelectorAll('.home-tab')[tabs.indexOf(tabId)]?.classList.add('active');
 
+  if (tabId === 'htab-fantasy') initFantasyHomeTab();
   if (tabId === 'htab-lestvica') loadLeaderboard();
   if (tabId === 'htab-arhiv') loadArchive();
   if (tabId === 'htab-shop') loadTopupPackages();
@@ -3097,9 +3306,7 @@ async function showAdminLogin() {
 async function adminResetPassword() {
   if (!currentUser || !currentUser.email) return;
   try {
-    var settings = getResetActionCodeSettings();
-    if (settings) await auth.sendPasswordResetEmail(currentUser.email, settings);
-    else await auth.sendPasswordResetEmail(currentUser.email);
+    await auth.sendPasswordResetEmail(currentUser.email);
     showToast('Povezava za ponastavitev gesla poslana na ' + currentUser.email + ' 📧');
   } catch(e) {
     console.error('sendPasswordResetEmail napaka:', e.code, e.message);
@@ -3138,6 +3345,8 @@ async function enterAdmin() {
   if (tabSkupineBtn) tabSkupineBtn.style.display = hasPerm(PERM.GROUPS) ? '' : 'none';
   var tabRevenueBtn = document.getElementById('tab-revenue-btn');
   if (tabRevenueBtn) tabRevenueBtn.style.display = hasPerm(PERM.REVENUE) ? '' : 'none';
+  var tabFantasyBtn = document.getElementById('tab-fantasy-btn');
+  if (tabFantasyBtn) tabFantasyBtn.style.display = hasPerm(PERM.FANTASY) ? '' : 'none';
   // PLAČILA: samo manager, in samo če je NJEGOVA skupina spicy (nastavljeno v showAdminLogin)
   var tabPlacilaBtn = document.getElementById('tab-placila-btn');
   var showPlacila = currentAdmin.role === 'manager' && currentAdmin.groupSpicyMode === true;
@@ -3145,7 +3354,7 @@ async function enterAdmin() {
 
   // Hide tabs based on role
   var allTabBtns = document.querySelectorAll('.admin-tab');
-  // tab order: nova(0), stave(1), placila(2, ID-based), kovanci(3), igralci(4), skupine(5, ID-based), revenue(6, ID-based), admini(7, ID-based)
+  // tab order: nova(0), stave(1), placila(2, ID-based), kovanci(3), igralci(4), skupine(5, ID-based), revenue(6, ID-based), fantasy(7, ID-based), admini(8, ID-based)
   if (!hasPerm(PERM.EVENTS)) {
     allTabBtns[0] && (allTabBtns[0].style.display = 'none');
     allTabBtns[1] && (allTabBtns[1].style.display = 'none');
@@ -3166,6 +3375,7 @@ async function enterAdmin() {
   else if (hasPerm(PERM.PLAYERS)) switchTab('tab-igralci');
   else if (hasPerm(PERM.GROUPS)) switchTab('tab-skupine');
   else if (hasPerm(PERM.REVENUE)) switchTab('tab-revenue');
+  else if (hasPerm(PERM.FANTASY)) switchTab('tab-fantasy');
   else if (hasPerm(PERM.ADMINS)) switchTab('tab-admini');
 
   loadAdminStats();
@@ -3178,7 +3388,7 @@ function switchTab(tabId) {
   var tabEl = document.getElementById(tabId);
   if (tabEl) tabEl.classList.add('active');
   // Activate button
-  var tabIds = ['tab-nova','tab-stave','tab-placila','tab-kovanci','tab-igralci','tab-skupine','tab-revenue','tab-admini'];
+  var tabIds = ['tab-nova','tab-stave','tab-placila','tab-kovanci','tab-igralci','tab-skupine','tab-revenue','tab-fantasy','tab-admini'];
   var idx = tabIds.indexOf(tabId);
   var btns = document.querySelectorAll('.admin-tab');
   if (btns[idx]) btns[idx].classList.add('active');
@@ -3188,6 +3398,7 @@ function switchTab(tabId) {
   if (tabId === 'tab-skupine') loadAdminGroups();
   if (tabId === 'tab-placila') loadPlacilaTab();
   if (tabId === 'tab-revenue') loadRevenueTab();
+  if (tabId === 'tab-fantasy') loadFantasyTab();
   window.scrollTo(0, 0);
 }
 
@@ -3661,6 +3872,1082 @@ async function loadRevenueTab() {
   document.getElementById('revenueGroupsList').innerHTML = rows.length
     ? rows.join('')
     : '<div style="color:var(--muted);font-size:14px;">Ni spicy skupin.</div>';
+}
+
+// ===== 🏈 FANTASY FOOTBALL (Faza 1: igralci, statistike, točkovanje) =====
+var fantasyPlayersCache = [];
+var fantasyScoringCache = null;
+var fantasyImportQueue = [];
+var fantasyImportIndex = 0;
+var fantasyImportResults = { added: 0, matched: 0, skipped: 0 };
+var fantasyPendingRow = null;
+
+var DEFAULT_FANTASY_SCORING = {
+  passingYardsPerPoint: 25,
+  passingTD: 4,
+  interceptionThrown: -2,
+  rushingYardsPerPoint: 10,
+  rushingTD: 6,
+  reception: 1,
+  receivingYardsPerPoint: 10,
+  receivingTD: 6,
+  fumbleLost: -2,
+  fieldGoalMade: 3,
+  extraPointMade: 1,
+  defTD: 6,
+  sack: 1,
+  defInterception: 2,
+  fumbleRecovery: 2
+};
+
+var FANTASY_SCORING_LABELS = {
+  passingYardsPerPoint: 'Passing Yards → 1 točka na',
+  passingTD: 'Passing TD (točk)',
+  interceptionThrown: 'Interception vržen (točk)',
+  rushingYardsPerPoint: 'Rushing Yards → 1 točka na',
+  rushingTD: 'Rushing TD (točk)',
+  reception: 'Vsak sprejem — PPR (točk)',
+  receivingYardsPerPoint: 'Receiving Yards → 1 točka na',
+  receivingTD: 'Receiving TD (točk)',
+  fumbleLost: 'Izgubljen fumble (točk)',
+  fieldGoalMade: 'Zadeti Field Goal (točk)',
+  extraPointMade: 'Zadeti Extra Point (točk)',
+  defTD: 'Defense TD (točk)',
+  sack: 'Sack (točk)',
+  defInterception: 'Defense Interception (točk)',
+  fumbleRecovery: 'Fumble Recovery (točk)'
+};
+
+var FANTASY_STAT_KEYS = ['passingYards','passingTDs','interceptions','rushingYards','rushingTDs','receptions','receivingYards','receivingTDs','fumblesLost','fieldGoalsMade','extraPointsMade','defTDs','sacks','defInterceptions','fumbleRecoveries'];
+
+async function loadFantasyTab() {
+  switchFantasySubtab('players');
+  await loadFantasyPlayers();
+  await loadFantasyScoring();
+  await loadFantasyStatsList();
+  await loadFantasySettingsAdmin();
+}
+
+function switchFantasySubtab(name) {
+  var subs = ['players', 'stats', 'scoring', 'teams'];
+  subs.forEach(function(n) {
+    var section = document.getElementById('fantasySub' + n.charAt(0).toUpperCase() + n.slice(1));
+    var btn = document.getElementById('fsubBtn_' + n);
+    if (section) section.classList.toggle('hidden', n !== name);
+    if (btn) {
+      if (n === name) { btn.style.borderColor = 'var(--orange)'; btn.style.color = 'var(--orange)'; }
+      else { btn.style.borderColor = ''; btn.style.color = ''; }
+    }
+  });
+  if (name === 'teams') {
+    loadFantasyAdminTodayMatchups();
+    loadFantasyAdminTeamsList();
+  }
+}
+
+// ----- IGRALCI -----
+async function loadFantasyPlayers() {
+  var listEl = document.getElementById('fantasyPlayersList');
+  try {
+    var snap = await db.collection('fantasyPlayers').get();
+    fantasyPlayersCache = snap.docs
+      .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+      .filter(function(p) { return !p._placeholder; })
+      .sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+
+    if (listEl) {
+      listEl.innerHTML = fantasyPlayersCache.length === 0
+        ? '<div style="color:var(--muted);font-size:14px;">Še ni dodanih igralcev.</div>'
+        : fantasyPlayersCache.map(function(p) {
+            return '<div class="admin-pkg-row">' +
+              '<div style="flex:1;"><b>' + p.name + '</b> <span style="color:var(--muted);font-size:12px;">(' + p.position + ')</span></div>' +
+              '<button class="btn-delete-event" onclick="deleteFantasyPlayer(\'' + p.id + '\', \'' + p.name.replace(/'/g, "\\'") + '\')">🗑</button>' +
+            '</div>';
+          }).join('');
+    }
+
+    var selEl = document.getElementById('statPlayerId');
+    if (selEl) {
+      selEl.innerHTML = fantasyPlayersCache.length
+        ? fantasyPlayersCache.map(function(p) { return '<option value="' + p.id + '">' + p.name + ' (' + p.position + ')</option>'; }).join('')
+        : '<option value="">Ni igralcev — dodaj jih zgoraj</option>';
+    }
+  } catch(e) {
+    console.error(e);
+    if (listEl) listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju.</div>';
+  }
+}
+
+async function addFantasyPlayer() {
+  var name = document.getElementById('newFantasyPlayerName').value.trim();
+  var pos = document.getElementById('newFantasyPlayerPos').value;
+  if (!name) { showToast('Vpiši ime igralca!', true); return; }
+
+  var dup = fantasyPlayersCache.find(function(p) { return p.name.toLowerCase() === name.toLowerCase(); });
+  if (dup) { showToast('Igralec s tem imenom že obstaja!', true); return; }
+
+  await db.collection('fantasyPlayers').add({ name: name, position: pos, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  document.getElementById('newFantasyPlayerName').value = '';
+  showToast('Igralec dodan! 🏈');
+  loadFantasyPlayers();
+}
+
+async function deleteFantasyPlayer(id, name) {
+  if (!confirm('Izbriši igralca "' + name + '"? Njegove statistike ostanejo v bazi, a brez povezave.')) return;
+  await db.collection('fantasyPlayers').doc(id).delete();
+  showToast('Igralec izbrisan.');
+  loadFantasyPlayers();
+}
+
+// ----- TOČKOVANJE -----
+async function getFantasyScoring() {
+  if (fantasyScoringCache) return fantasyScoringCache;
+  try {
+    var snap = await db.collection('config').doc('fantasyScoring').get();
+    fantasyScoringCache = snap.exists ? Object.assign({}, DEFAULT_FANTASY_SCORING, snap.data()) : Object.assign({}, DEFAULT_FANTASY_SCORING);
+  } catch(e) {
+    fantasyScoringCache = Object.assign({}, DEFAULT_FANTASY_SCORING);
+  }
+  return fantasyScoringCache;
+}
+
+async function loadFantasyScoring() {
+  fantasyScoringCache = null; // vedno preberi sveže ob vstopu v zavihek
+  var scoring = await getFantasyScoring();
+  var formEl = document.getElementById('fantasyScoringForm');
+  if (!formEl) return;
+  formEl.innerHTML = Object.keys(FANTASY_SCORING_LABELS).map(function(key) {
+    return '<div>' +
+      '<div class="field-label" style="font-size:12px;margin-bottom:4px;">' + FANTASY_SCORING_LABELS[key] + '</div>' +
+      '<input type="number" step="0.1" class="input-field" id="scoring_' + key + '" value="' + scoring[key] + '" style="margin-bottom:0;">' +
+    '</div>';
+  }).join('');
+}
+
+async function saveFantasyScoring() {
+  var newScoring = {};
+  Object.keys(FANTASY_SCORING_LABELS).forEach(function(key) {
+    var el = document.getElementById('scoring_' + key);
+    newScoring[key] = parseFloat(el.value) || 0;
+  });
+  await db.collection('config').doc('fantasyScoring').set(newScoring);
+  fantasyScoringCache = newScoring;
+  showToast('Točkovanje shranjeno! ⚙️');
+}
+
+function calculateFantasyPoints(stats, scoring) {
+  var pts = 0;
+  pts += (stats.passingYards || 0) / (scoring.passingYardsPerPoint || 25);
+  pts += (stats.passingTDs || 0) * scoring.passingTD;
+  pts += (stats.interceptions || 0) * scoring.interceptionThrown;
+  pts += (stats.rushingYards || 0) / (scoring.rushingYardsPerPoint || 10);
+  pts += (stats.rushingTDs || 0) * scoring.rushingTD;
+  pts += (stats.receptions || 0) * scoring.reception;
+  pts += (stats.receivingYards || 0) / (scoring.receivingYardsPerPoint || 10);
+  pts += (stats.receivingTDs || 0) * scoring.receivingTD;
+  pts += (stats.fumblesLost || 0) * scoring.fumbleLost;
+  pts += (stats.fieldGoalsMade || 0) * scoring.fieldGoalMade;
+  pts += (stats.extraPointsMade || 0) * scoring.extraPointMade;
+  pts += (stats.defTDs || 0) * scoring.defTD;
+  pts += (stats.sacks || 0) * scoring.sack;
+  pts += (stats.defInterceptions || 0) * scoring.defInterception;
+  pts += (stats.fumbleRecoveries || 0) * scoring.fumbleRecovery;
+  return Math.round(pts * 100) / 100;
+}
+
+// ----- STATISTIKE (ročni vnos) -----
+async function saveFantasyStatEntry() {
+  var playerId = document.getElementById('statPlayerId').value;
+  var week = parseInt(document.getElementById('statWeek').value) || 1;
+  if (!playerId) { showToast('Izberi igralca!', true); return; }
+  var player = fantasyPlayersCache.find(function(p) { return p.id === playerId; });
+  if (!player) return;
+
+  var stats = {};
+  FANTASY_STAT_KEYS.forEach(function(k) {
+    var el = document.getElementById('stat_' + k);
+    stats[k] = el ? (parseFloat(el.value) || 0) : 0;
+  });
+
+  var scoring = await getFantasyScoring();
+  var points = calculateFantasyPoints(stats, scoring);
+  var statId = playerId + '_w' + week;
+  var data = Object.assign({ playerId: playerId, playerName: player.name, week: week, fantasyPoints: points, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, stats);
+  await db.collection('fantasyPlayerStats').doc(statId).set(data);
+
+  showToast(player.name + ' — teden ' + week + ': ' + points + ' točk! 🏈');
+  FANTASY_STAT_KEYS.forEach(function(k) {
+    var el = document.getElementById('stat_' + k);
+    if (el) el.value = '0';
+  });
+  loadFantasyStatsList();
+}
+
+async function loadFantasyStatsList() {
+  var listEl = document.getElementById('fantasyStatsList');
+  if (!listEl) return;
+  try {
+    var snap = await db.collection('fantasyPlayerStats').get();
+    var stats = snap.docs
+      .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+      .filter(function(s) { return !s._placeholder; })
+      .sort(function(a, b) { return (b.week || 0) - (a.week || 0); })
+      .slice(0, 20);
+
+    listEl.innerHTML = stats.length === 0
+      ? '<div style="color:var(--muted);font-size:14px;">Še ni vnesenih statistik.</div>'
+      : stats.map(function(s) {
+          return '<div class="admin-pkg-row">' +
+            '<div style="flex:1;"><b>' + s.playerName + '</b> <span style="color:var(--muted);font-size:12px;">teden ' + s.week + '</span></div>' +
+            '<div style="font-weight:800;color:var(--orange);">' + s.fantasyPoints + ' pts</div>' +
+          '</div>';
+        }).join('');
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju.</div>';
+  }
+}
+
+// ----- CSV PREDLOGA -----
+function downloadFantasyCsvTemplate() {
+  var csv = 'PlayerName,Position,Week,PassingYards,PassingTDs,Interceptions,RushingYards,RushingTDs,Receptions,ReceivingYards,ReceivingTDs,FumblesLost,FieldGoalsMade,ExtraPointsMade,DefTDs,Sacks,DefInterceptions,FumbleRecoveries\n' +
+    'Janez Novak,QB,1,280,2,1,15,0,0,0,0,0,0,0,0,0,0,0\n' +
+    'Marko Kovač,RB,1,0,0,0,95,1,3,20,0,0,0,0,0,0,0,0\n' +
+    'Luka Zupan,WR,1,0,0,0,0,0,6,110,1,0,0,0,0,0,0,0\n';
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'fantasy_stats_template.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ----- CSV UVOZ + PAMETNO UJEMANJE IMEN -----
+function parseFantasyCSV(text) {
+  var lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+  if (lines.length < 2) return [];
+  var headers = lines[0].split(',').map(function(h) { return h.trim(); });
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    var cells = lines[i].split(',').map(function(c) { return c.trim(); });
+    var row = {};
+    headers.forEach(function(h, idx) { row[h] = cells[idx] !== undefined ? cells[idx] : ''; });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function fantasyLevenshtein(a, b) {
+  a = a.toLowerCase().trim();
+  b = b.toLowerCase().trim();
+  var m = a.length, n = b.length;
+  var dp = [];
+  for (var i = 0; i <= m; i++) { dp.push([i]); }
+  for (var j = 0; j <= n; j++) { dp[0][j] = j; }
+  for (i = 1; i <= m; i++) {
+    for (j = 1; j <= n; j++) {
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function fantasySimilarity(a, b) {
+  var dist = fantasyLevenshtein(a, b);
+  var maxLen = Math.max(a.length, b.length, 1);
+  return 1 - (dist / maxLen);
+}
+
+function findSimilarFantasyPlayers(name, threshold) {
+  threshold = threshold || 0.55;
+  return fantasyPlayersCache
+    .map(function(p) { return { player: p, score: fantasySimilarity(name, p.name) }; })
+    .filter(function(x) { return x.score >= threshold; })
+    .sort(function(a, b) { return b.score - a.score; })
+    .slice(0, 3);
+}
+
+async function handleFantasyCsvUpload() {
+  var fileInput = document.getElementById('fantasyCsvInput');
+  var statusEl = document.getElementById('fantasyCsvStatus');
+  if (!fileInput.files || !fileInput.files[0]) {
+    statusEl.style.color = '#ff4444';
+    statusEl.textContent = 'Izberi CSV datoteko!';
+    return;
+  }
+
+  var text = await fileInput.files[0].text();
+  var rows = parseFantasyCSV(text);
+  if (rows.length === 0) {
+    statusEl.style.color = '#ff4444';
+    statusEl.textContent = 'Datoteka je prazna ali napačno oblikovana.';
+    return;
+  }
+
+  await loadFantasyPlayers();
+
+  fantasyImportQueue = rows;
+  fantasyImportIndex = 0;
+  fantasyImportResults = { added: 0, matched: 0, skipped: 0 };
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = 'Uvažam... (' + rows.length + ' vrstic)';
+  processNextFantasyImportRow();
+}
+
+async function processNextFantasyImportRow() {
+  var statusEl = document.getElementById('fantasyCsvStatus');
+  if (fantasyImportIndex >= fantasyImportQueue.length) {
+    statusEl.style.color = '#4caf50';
+    statusEl.textContent = '✅ Uvoz končan! Novih igralcev: ' + fantasyImportResults.added + ', ujemanj z obstoječimi: ' + fantasyImportResults.matched + ', preskočenih: ' + fantasyImportResults.skipped + '.';
+    document.getElementById('fantasyCsvInput').value = '';
+    loadFantasyStatsList();
+    return;
+  }
+
+  var row = fantasyImportQueue[fantasyImportIndex];
+  var name = (row.PlayerName || '').trim();
+  if (!name) { fantasyImportIndex++; return processNextFantasyImportRow(); }
+
+  var exact = fantasyPlayersCache.find(function(p) { return p.name.toLowerCase() === name.toLowerCase(); });
+  if (exact) {
+    await saveFantasyStatFromRow(exact, row);
+    fantasyImportResults.matched++;
+    fantasyImportIndex++;
+    return processNextFantasyImportRow();
+  }
+
+  fantasyPendingRow = row;
+  var suggestions = findSimilarFantasyPlayers(name);
+  document.getElementById('fnpName').textContent = name;
+  var suggEl = document.getElementById('fnpSuggestions');
+  suggEl.innerHTML = suggestions.length > 0
+    ? '<div style="font-size:13px;color:var(--muted);margin-bottom:2px;">Mogoče si mislil:</div>' +
+      suggestions.map(function(s) {
+        return '<button class="btn-sm" style="width:100%;text-align:left;" onclick="fantasyNewPlayerUseSuggestion(\'' + s.player.id + '\')">' +
+          s.player.name + ' <span style="color:var(--muted);">(' + Math.round(s.score * 100) + '% ujemanje)</span>' +
+        '</button>';
+      }).join('')
+    : '<div style="font-size:13px;color:var(--muted);">Ni podobnih imen v bazi.</div>';
+  document.getElementById('fantasyNewPlayerModal').classList.remove('hidden');
+}
+
+async function fantasyNewPlayerUseSuggestion(playerId) {
+  var player = fantasyPlayersCache.find(function(p) { return p.id === playerId; });
+  document.getElementById('fantasyNewPlayerModal').classList.add('hidden');
+  if (player && fantasyPendingRow) {
+    await saveFantasyStatFromRow(player, fantasyPendingRow);
+    fantasyImportResults.matched++;
+  }
+  fantasyPendingRow = null;
+  fantasyImportIndex++;
+  processNextFantasyImportRow();
+}
+
+async function fantasyNewPlayerConfirmAdd() {
+  document.getElementById('fantasyNewPlayerModal').classList.add('hidden');
+  if (fantasyPendingRow) {
+    var name = fantasyPendingRow.PlayerName.trim();
+    var pos = (fantasyPendingRow.Position || 'RB').trim().toUpperCase();
+    var docRef = await db.collection('fantasyPlayers').add({ name: name, position: pos, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    var newPlayer = { id: docRef.id, name: name, position: pos };
+    fantasyPlayersCache.push(newPlayer);
+    await saveFantasyStatFromRow(newPlayer, fantasyPendingRow);
+    fantasyImportResults.added++;
+  }
+  fantasyPendingRow = null;
+  fantasyImportIndex++;
+  processNextFantasyImportRow();
+}
+
+function fantasyNewPlayerSkip() {
+  document.getElementById('fantasyNewPlayerModal').classList.add('hidden');
+  fantasyImportResults.skipped++;
+  fantasyPendingRow = null;
+  fantasyImportIndex++;
+  processNextFantasyImportRow();
+}
+
+async function saveFantasyStatFromRow(player, row) {
+  var week = parseInt(row.Week) || 1;
+  var stats = {
+    passingYards: parseFloat(row.PassingYards) || 0,
+    passingTDs: parseFloat(row.PassingTDs) || 0,
+    interceptions: parseFloat(row.Interceptions) || 0,
+    rushingYards: parseFloat(row.RushingYards) || 0,
+    rushingTDs: parseFloat(row.RushingTDs) || 0,
+    receptions: parseFloat(row.Receptions) || 0,
+    receivingYards: parseFloat(row.ReceivingYards) || 0,
+    receivingTDs: parseFloat(row.ReceivingTDs) || 0,
+    fumblesLost: parseFloat(row.FumblesLost) || 0,
+    fieldGoalsMade: parseFloat(row.FieldGoalsMade) || 0,
+    extraPointsMade: parseFloat(row.ExtraPointsMade) || 0,
+    defTDs: parseFloat(row.DefTDs) || 0,
+    sacks: parseFloat(row.Sacks) || 0,
+    defInterceptions: parseFloat(row.DefInterceptions) || 0,
+    fumbleRecoveries: parseFloat(row.FumbleRecoveries) || 0
+  };
+  var scoring = await getFantasyScoring();
+  var points = calculateFantasyPoints(stats, scoring);
+  var statId = player.id + '_w' + week;
+  var data = Object.assign({ playerId: player.id, playerName: player.name, week: week, fantasyPoints: points, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, stats);
+  await db.collection('fantasyPlayerStats').doc(statId).set(data);
+}
+
+// ===== 🏆 FANTASY FAZA 2: EKIPE + DNEVNE TEKME =====
+var fantasySettingsCache = null;
+var fantasyTestUnlocked = false;
+try { fantasyTestUnlocked = sessionStorage.getItem('fantasyTestUnlocked') === '1'; } catch(e) {}
+
+async function getFantasySettings() {
+  if (fantasySettingsCache) return fantasySettingsCache;
+  try {
+    var snap = await db.collection('config').doc('fantasySettings').get();
+    fantasySettingsCache = snap.exists
+      ? Object.assign({ rosterMode: 'free', rosterSize: 5, released: false, spicyMode: false }, snap.data())
+      : { rosterMode: 'free', rosterSize: 5, released: false, spicyMode: false };
+  } catch(e) {
+    fantasySettingsCache = { rosterMode: 'free', rosterSize: 5, released: false, spicyMode: false };
+  }
+  return fantasySettingsCache;
+}
+
+// ----- ADMIN: nastavitve lige -----
+async function loadFantasySettingsAdmin() {
+  fantasySettingsCache = null;
+  var s = await getFantasySettings();
+  var modeEl = document.getElementById('fantasySettingRosterMode');
+  var sizeEl = document.getElementById('fantasySettingRosterSize');
+  var releasedEl = document.getElementById('fantasySettingReleased');
+  var spicyEl = document.getElementById('fantasySettingSpicy');
+  if (modeEl) modeEl.value = s.rosterMode;
+  if (sizeEl) sizeEl.value = s.rosterSize;
+  if (releasedEl) releasedEl.checked = !!s.released;
+  if (spicyEl) spicyEl.checked = !!s.spicyMode;
+  loadFantasyPendingPayments();
+  loadFantasyPendingPayouts();
+}
+
+async function saveFantasySettings() {
+  var rosterMode = document.getElementById('fantasySettingRosterMode').value;
+  var rosterSize = parseInt(document.getElementById('fantasySettingRosterSize').value) || 5;
+  var released = document.getElementById('fantasySettingReleased').checked;
+  var spicyMode = document.getElementById('fantasySettingSpicy').checked;
+  await db.collection('config').doc('fantasySettings').set({ rosterMode: rosterMode, rosterSize: rosterSize, released: released, spicyMode: spicyMode });
+  fantasySettingsCache = { rosterMode: rosterMode, rosterSize: rosterSize, released: released, spicyMode: spicyMode };
+  showToast('Nastavitve lige shranjene! ⚙️' + (released ? ' Fantasy Football je zdaj objavljen za vse.' : ''));
+}
+
+// ----- "V testiranju" zaklep (ni mišljeno kot varnostna zaščita, samo za mehko testiranje) -----
+function unlockFantasyTest() {
+  var pass = document.getElementById('fantasyTestPassInput').value;
+  if (pass === '1559') {
+    fantasyTestUnlocked = true;
+    try { sessionStorage.setItem('fantasyTestUnlocked', '1'); } catch(e) {}
+    document.getElementById('fantasyComingSoonModal').classList.add('hidden');
+    showToast('Fantasy Football odklenjen za testiranje! 🏈');
+    initFantasyHomeTab();
+  } else {
+    showToast('Napačno geslo!', true);
+  }
+}
+
+// ----- ADMIN: generiranje dnevnih tekem -----
+function fantasyToday() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+async function generateDailyFantasyMatchups() {
+  var today = fantasyToday();
+  try {
+    var existingSnap = await db.collection('fantasyMatchups').where('date', '==', today).limit(1).get();
+    if (!existingSnap.empty) { showToast('Tekme za danes so že generirane!', true); return; }
+
+    var teamsSnap = await db.collection('fantasyTeams').get();
+    var teams = teamsSnap.docs
+      .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+      .filter(function(t) { return !t._placeholder && t.playerIds && t.playerIds.length > 0; });
+    if (teams.length < 2) { showToast('Rabiš vsaj 2 ekipi za generiranje tekem!', true); return; }
+
+    var shuffled = teams.slice().sort(function() { return Math.random() - 0.5; });
+    var batch = db.batch();
+    var pairs = [];
+    for (var i = 0; i < shuffled.length - 1; i += 2) {
+      var t1 = shuffled[i], t2 = shuffled[i + 1];
+      var ref = db.collection('fantasyMatchups').doc();
+      // NAMENOMA še NE nastavimo team1Points/team2Points/winner — to se
+      // določi šele ob resolveFantasyMatchups(), da je vmes na voljo okno
+      // za stavljenje (drugače bi bil rezultat znan že ob generiranju).
+      batch.set(ref, {
+        date: today,
+        team1UserId: t1.userId, team1Name: t1.teamName,
+        team2UserId: t2.userId, team2Name: t2.teamName,
+        team1Points: null, team2Points: null,
+        resolved: false, winnerUserId: null,
+        bets: { team1: 0, team2: 0 }, totalBets: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      pairs.push([t1, t2]);
+    }
+    await batch.commit();
+
+    for (var j = 0; j < pairs.length; j++) {
+      await sendNotification(pairs[j][0].userId, '🏈 Današnja tekma: ' + pairs[j][0].teamName + ' proti ' + pairs[j][1].teamName + '!', 'other');
+      await sendNotification(pairs[j][1].userId, '🏈 Današnja tekma: ' + pairs[j][1].teamName + ' proti ' + pairs[j][0].teamName + '!', 'other');
+    }
+    if (shuffled.length % 2 === 1) {
+      var bye = shuffled[shuffled.length - 1];
+      await sendNotification(bye.userId, '📅 Danes nimaš tekmeca (lih. št. ekip v ligi) — prosti dan!', 'other');
+    }
+
+    showToast(pairs.length + ' tekem generiranih za danes! Odpre se okno za stavljenje. 🏈');
+    loadFantasyAdminTodayMatchups();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri generiranju tekem!', true);
+  }
+}
+
+async function loadFantasyAdminTodayMatchups() {
+  var listEl = document.getElementById('fantasyAdminTodayMatchups');
+  if (!listEl) return;
+  try {
+    var snap = await db.collection('fantasyMatchups').where('date', '==', fantasyToday()).get();
+    var matchups = snap.docs.map(function(d) { return d.data(); }).filter(function(m) { return !m._placeholder; });
+    listEl.innerHTML = matchups.length === 0
+      ? '<div style="color:var(--muted);font-size:14px;">Za danes še ni generiranih tekem.</div>'
+      : matchups.map(function(m) {
+          return '<div class="admin-pkg-row">' +
+            '<div style="flex:1;"><b>' + m.team1Name + '</b> (' + m.team1Points + ') vs <b>' + m.team2Name + '</b> (' + m.team2Points + ')</div>' +
+            '<div style="font-size:12px;color:var(--orange);">🏆 ' + (m.team1UserId === m.winnerUserId ? m.team1Name : m.team2Name) + '</div>' +
+          '</div>';
+        }).join('');
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju.</div>';
+  }
+}
+
+async function loadFantasyAdminTeamsList() {
+  var listEl = document.getElementById('fantasyAdminTeamsList');
+  if (!listEl) return;
+  try {
+    var snap = await db.collection('fantasyTeams').get();
+    var teams = snap.docs.map(function(d) { return d.data(); }).filter(function(t) { return !t._placeholder; });
+    listEl.innerHTML = teams.length === 0
+      ? '<div style="color:var(--muted);font-size:14px;">Še ni ustvarjenih ekip.</div>'
+      : teams.map(function(t) {
+          return '<div class="admin-pkg-row"><div style="flex:1;"><b>' + t.teamName + '</b> <span style="color:var(--muted);font-size:12px;">— ' + t.userName + '</span></div><div style="color:var(--muted);font-size:12px;">' + (t.playerIds || []).length + ' igralcev</div></div>';
+        }).join('');
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju.</div>';
+  }
+}
+
+// ----- ADMIN: razreši današnje tekme (zaklene rezultat + razreši stave) -----
+async function resolveFantasyMatchups() {
+  var today = fantasyToday();
+  try {
+    var matchupsSnap = await db.collection('fantasyMatchups').where('date', '==', today).where('resolved', '==', false).get();
+    var matchups = matchupsSnap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }).filter(function(m) { return !m._placeholder; });
+    if (matchups.length === 0) { showToast('Ni nerešenih tekem za danes!', true); return; }
+
+    var teamsSnap = await db.collection('fantasyTeams').get();
+    var teamsById = {};
+    teamsSnap.docs.forEach(function(d) { if (!d.data()._placeholder) teamsById[d.id] = d.data(); });
+
+    var statsSnap = await db.collection('fantasyPlayerStats').get();
+    var pointsByPlayer = {};
+    statsSnap.docs.forEach(function(d) {
+      var s = d.data();
+      if (s._placeholder) return;
+      pointsByPlayer[s.playerId] = (pointsByPlayer[s.playerId] || 0) + (s.fantasyPoints || 0);
+    });
+
+    function teamPoints(userId) {
+      var t = teamsById[userId];
+      if (!t) return 0;
+      return (t.playerIds || []).reduce(function(sum, pid) { return sum + (pointsByPlayer[pid] || 0); }, 0);
+    }
+
+    for (var i = 0; i < matchups.length; i++) {
+      var m = matchups[i];
+      var t1pts = Math.round(teamPoints(m.team1UserId) * 100) / 100;
+      var t2pts = Math.round(teamPoints(m.team2UserId) * 100) / 100;
+      var winnerUserId = t1pts >= t2pts ? m.team1UserId : m.team2UserId;
+
+      await db.collection('fantasyMatchups').doc(m.id).update({
+        team1Points: t1pts, team2Points: t2pts, resolved: true, winnerUserId: winnerUserId
+      });
+
+      await resolveFantasyBetsForMatchup(m.id, winnerUserId === m.team1UserId ? 'team1' : 'team2');
+
+      await sendNotification(m.team1UserId, t1pts >= t2pts
+        ? '🏆 Zmagal si današnjo fantasy tekmo! (' + t1pts + ' – ' + t2pts + ')'
+        : '😔 Izgubil si današnjo fantasy tekmo. (' + t1pts + ' – ' + t2pts + ')', 'other');
+      await sendNotification(m.team2UserId, t2pts >= t1pts
+        ? '🏆 Zmagal si današnjo fantasy tekmo! (' + t2pts + ' – ' + t1pts + ')'
+        : '😔 Izgubil si današnjo fantasy tekmo. (' + t2pts + ' – ' + t1pts + ')', 'other');
+    }
+
+    showToast(matchups.length + ' tekem razrešenih! 🏈');
+    loadFantasyAdminTodayMatchups();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri razreševanju tekem!', true);
+  }
+}
+
+async function resolveFantasyBetsForMatchup(matchupId, winningPick) {
+  var betsSnap = await db.collection('fantasyBets').where('matchupId', '==', matchupId).where('result', '==', 'pending').get();
+  var betDocs = betsSnap.docs.filter(function(d) { return !d.data()._placeholder; });
+  if (betDocs.length === 0) return;
+
+  var settings = await getFantasySettings();
+  var isSpicy = !!settings.spicyMode;
+  if (isSpicy) {
+    betDocs = betDocs.filter(function(d) { return d.data().paymentStatus === 'confirmed'; });
+  }
+  if (betDocs.length === 0) return;
+
+  var totalPool = betDocs.reduce(function(s, d) { return s + d.data().amount; }, 0);
+  var winPool = betDocs.filter(function(d) { return d.data().pick === winningPick; }).reduce(function(s, d) { return s + d.data().amount; }, 0);
+  var ratio = winPool > 0 ? totalPool / winPool : 1;
+
+  for (var i = 0; i < betDocs.length; i++) {
+    var bd = betDocs[i];
+    var b = bd.data();
+    var isWin = b.pick === winningPick;
+    var payout = isWin ? Math.floor(b.amount * ratio) : 0;
+
+    if (isSpicy) {
+      await db.collection('fantasyBets').doc(bd.id).update({ result: isWin ? 'win' : 'lose', payout: payout, payoutStatus: isWin ? 'pending' : 'not_applicable' });
+      if (isWin) await sendNotification(b.userId, '🏆 Fantasy stava dobljena! Superadmin ti dolguje ' + payout + ' € (čaka izplačilo).', 'other');
+      else await sendNotification(b.userId, '😔 Fantasy stava izgubljena.', 'other');
+    } else {
+      await db.collection('fantasyBets').doc(bd.id).update({ result: isWin ? 'win' : 'lose', payout: payout });
+      if (isWin) {
+        var uSnap = await db.collection('users').doc(b.userId).get();
+        if (uSnap.exists) await db.collection('users').doc(b.userId).update({ coins: (uSnap.data().coins || 0) + payout });
+        await sendNotification(b.userId, '🏆 Fantasy stava dobljena! +' + payout + ' 🪙', 'other');
+      } else {
+        await sendNotification(b.userId, '😔 Fantasy stava izgubljena.', 'other');
+      }
+    }
+  }
+}
+
+// ----- ADMIN: potrjevanje plačil/izplačil (🌶️ Spicy) -----
+async function loadFantasyPendingPayments() {
+  var listEl = document.getElementById('fantasyPendingPayments');
+  if (!listEl) return;
+  try {
+    var snap = await db.collection('fantasyBets').where('paymentStatus', '==', 'pending').get();
+    var bets = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }).filter(function(b) { return !b._placeholder; });
+    listEl.innerHTML = bets.length === 0
+      ? '<div style="color:var(--muted);font-size:14px;">Ni čakajočih plačil.</div>'
+      : bets.map(function(b) {
+          return '<div class="admin-pkg-row"><div style="flex:1;"><b>' + b.userName + '</b> — ' + b.amount + ' €</div><button class="btn-resolve" onclick="confirmFantasyPayment(\'' + b.id + '\')">✅ POTRDI</button></div>';
+        }).join('');
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju.</div>';
+  }
+}
+
+async function confirmFantasyPayment(betId) {
+  await db.collection('fantasyBets').doc(betId).update({
+    paymentStatus: 'confirmed', paymentConfirmedAt: firebase.firestore.FieldValue.serverTimestamp(), paymentConfirmedBy: currentAdmin.id
+  });
+  showToast('Plačilo potrjeno! ✅');
+  loadFantasyPendingPayments();
+}
+
+async function loadFantasyPendingPayouts() {
+  var listEl = document.getElementById('fantasyPendingPayouts');
+  if (!listEl) return;
+  try {
+    var snap = await db.collection('fantasyBets').where('payoutStatus', '==', 'pending').get();
+    var bets = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }).filter(function(b) { return !b._placeholder; });
+    listEl.innerHTML = bets.length === 0
+      ? '<div style="color:var(--muted);font-size:14px;">Ni čakajočih izplačil.</div>'
+      : bets.map(function(b) {
+          return '<div class="admin-pkg-row"><div style="flex:1;"><b>' + b.userName + '</b> — dolguješ ' + b.payout + ' €</div><button class="btn-resolve" onclick="confirmFantasyPayout(\'' + b.id + '\')">✅ IZPLAČANO</button></div>';
+        }).join('');
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju.</div>';
+  }
+}
+
+async function confirmFantasyPayout(betId) {
+  await db.collection('fantasyBets').doc(betId).update({
+    payoutStatus: 'paid', payoutConfirmedAt: firebase.firestore.FieldValue.serverTimestamp(), payoutConfirmedBy: currentAdmin.id
+  });
+  showToast('Izplačilo potrjeno! ✅');
+  loadFantasyPendingPayouts();
+}
+
+// ----- IGRALEC: stavljenje na tekme -----
+async function loadFantasyBettableMatchups() {
+  var listEl = document.getElementById('fantasyBettableMatchups');
+  if (!listEl) return;
+  try {
+    var today = fantasyToday();
+    var snap = await db.collection('fantasyMatchups').where('date', '==', today).get();
+    var matchups = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }).filter(function(m) { return !m._placeholder; });
+    var settings = await getFantasySettings();
+    var isSpicy = !!settings.spicyMode;
+
+    if (matchups.length === 0) {
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:14px;">Za danes še ni tekem.</div>';
+      return;
+    }
+
+    var myBetsSnap = await db.collection('fantasyBets').where('userId', '==', currentUser.id).get();
+    var myBetMatchupIds = myBetsSnap.docs.map(function(d) { return d.data().matchupId; });
+
+    listEl.innerHTML = matchups.map(function(m) {
+      var isParticipant = m.team1UserId === currentUser.id || m.team2UserId === currentUser.id;
+      var alreadyBet = myBetMatchupIds.indexOf(m.id) !== -1;
+      var canBet = !isParticipant && !alreadyBet && !m.resolved;
+      var statusLabel = m.resolved ? '✓ Razrešeno (' + m.team1Points + ' – ' + m.team2Points + ')'
+        : isParticipant ? 'To je tvoja tekma'
+        : alreadyBet ? 'Že si stavil'
+        : 'Klikni za stavo';
+      var t1n = m.team1Name.replace(/'/g, "\\'");
+      var t2n = m.team2Name.replace(/'/g, "\\'");
+      return '<div class="event-card" ' + (canBet ? ('onclick="openFantasyBetModal(\'' + m.id + '\', \'' + t1n + '\', \'' + t2n + '\', ' + isSpicy + ')" style="cursor:pointer;"') : '') + '>' +
+        '<div class="event-q">' + m.team1Name + ' proti ' + m.team2Name + (isSpicy ? ' 🌶️' : '') + '</div>' +
+        '<div class="event-meta"><span>' + statusLabel + '</span></div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju.</div>';
+  }
+}
+
+var fantasyBetMatchupId = null;
+var fantasyBetPick = null;
+
+function openFantasyBetModal(matchupId, team1Name, team2Name, isSpicy) {
+  fantasyBetMatchupId = matchupId;
+  fantasyBetPick = null;
+  document.getElementById('fantasyBetMatchupLabel').textContent = team1Name + ' proti ' + team2Name;
+  document.getElementById('fantasyBetTeam1Btn').textContent = team1Name;
+  document.getElementById('fantasyBetTeam2Btn').textContent = team2Name;
+  document.getElementById('fantasyBetTeam1Btn').classList.remove('selected');
+  document.getElementById('fantasyBetTeam2Btn').classList.remove('selected');
+  document.getElementById('fantasyBetAmountLabel').textContent = isSpicy ? 'ZNESEK (€)' : 'ZNESEK (kovanci)';
+  document.getElementById('fantasyBetAmount').value = '';
+  document.getElementById('fantasyBetError').textContent = '';
+  document.getElementById('fantasyBetModal').classList.remove('hidden');
+}
+
+function selectFantasyBetPick(pick) {
+  fantasyBetPick = pick;
+  document.getElementById('fantasyBetTeam1Btn').classList.toggle('selected', pick === 'team1');
+  document.getElementById('fantasyBetTeam2Btn').classList.toggle('selected', pick === 'team2');
+}
+
+async function submitFantasyBet() {
+  var errEl = document.getElementById('fantasyBetError');
+  errEl.textContent = '';
+  if (!fantasyBetPick) { errEl.textContent = 'Izberi ekipo!'; return; }
+  var amount = parseInt(document.getElementById('fantasyBetAmount').value);
+  if (!amount || amount < 1) { errEl.textContent = 'Vpiši veljaven znesek!'; return; }
+
+  var settings = await getFantasySettings();
+  var isSpicy = !!settings.spicyMode;
+  if (!isSpicy && amount > currentUser.coins) { errEl.textContent = 'Nimaš dovolj kovancev!'; return; }
+
+  try {
+    var matchupSnap = await db.collection('fantasyMatchups').doc(fantasyBetMatchupId).get();
+    if (!matchupSnap.exists) { errEl.textContent = 'Tekma ne obstaja več.'; return; }
+    var matchup = matchupSnap.data();
+    if (matchup.resolved) { errEl.textContent = 'Ta tekma je že razrešena.'; return; }
+    if (matchup.team1UserId === currentUser.id || matchup.team2UserId === currentUser.id) {
+      errEl.textContent = 'Ne moreš staviti na lastno tekmo!';
+      return;
+    }
+
+    var betId = currentUser.id + '_' + fantasyBetMatchupId;
+    var existingBet = await db.collection('fantasyBets').doc(betId).get();
+    if (existingBet.exists) { errEl.textContent = 'Na to tekmo si že stavil!'; return; }
+
+    if (isSpicy) {
+      await db.collection('fantasyBets').doc(betId).set({
+        userId: currentUser.id, userName: currentUser.name, matchupId: fantasyBetMatchupId,
+        pick: fantasyBetPick, amount: amount, isSpicy: true,
+        result: 'pending', payout: 0,
+        paymentStatus: 'pending', payoutStatus: 'not_applicable',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showToast('Stava oddana! Čaka potrditev plačila 🌶️');
+    } else {
+      await db.collection('fantasyBets').doc(betId).set({
+        userId: currentUser.id, userName: currentUser.name, matchupId: fantasyBetMatchupId,
+        pick: fantasyBetPick, amount: amount,
+        result: 'pending', payout: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await db.collection('users').doc(currentUser.id).update({ coins: currentUser.coins - amount });
+      currentUser.coins -= amount;
+      updateNavCoins();
+      showToast('Stava postavljena! -' + amount + ' 🪙');
+    }
+
+    document.getElementById('fantasyBetModal').classList.add('hidden');
+    loadFantasyBettableMatchups();
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = 'Napaka pri stavljenju!';
+  }
+}
+
+// ----- HOME TAB: moja ekipa -----
+var fantasyEditingTeam = false;
+
+async function initFantasyHomeTab() {
+  var settings = await getFantasySettings();
+  if (!settings.released && !fantasyTestUnlocked) {
+    document.getElementById('fantasyComingSoonModal').classList.remove('hidden');
+    return;
+  }
+
+  fantasyEditingTeam = false;
+  try {
+    var teamSnap = await db.collection('fantasyTeams').doc(currentUser.id).get();
+    if (teamSnap.exists) {
+      document.getElementById('fantasyNoTeam').classList.add('hidden');
+      document.getElementById('fantasyHasTeam').classList.remove('hidden');
+      await renderMyFantasyTeam(teamSnap.data()); // ta znotraj tudi pokliče loadFantasyBettableMatchups()
+    } else {
+      document.getElementById('fantasyNoTeam').classList.remove('hidden');
+      document.getElementById('fantasyHasTeam').classList.add('hidden');
+      await renderFantasyPlayerPicker();
+      await loadFantasyBettableMatchups();
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function renderFantasyPlayerPicker(preSelectedIds) {
+  preSelectedIds = preSelectedIds || [];
+  var settings = await getFantasySettings();
+  document.getElementById('fantasyModeExplain').textContent = settings.rosterMode === 'draft'
+    ? 'Draft način: vsak igralec je lahko samo v ENI ekipi. Izberi do ' + settings.rosterSize + ' igralcev.'
+    : 'Prost izbor: isti igralec je lahko v več ekipah hkrati. Izberi do ' + settings.rosterSize + ' igralcev.';
+
+  var playersSnap = await db.collection('fantasyPlayers').get();
+  var players = playersSnap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }).filter(function(p) { return !p._placeholder; });
+
+  var takenIds = [];
+  if (settings.rosterMode === 'draft') {
+    var teamsSnap = await db.collection('fantasyTeams').get();
+    teamsSnap.docs.forEach(function(d) {
+      if (d.id === currentUser.id || d.data()._placeholder) return; // moja lastna ekipa ne šteje kot "zasedeno"
+      takenIds = takenIds.concat(d.data().playerIds || []);
+    });
+  }
+
+  var pickerEl = document.getElementById('fantasyPlayerPicker');
+  if (players.length === 0) {
+    pickerEl.innerHTML = '<div style="color:var(--muted);font-size:14px;">Admin še ni dodal nobenega igralca.</div>';
+    return;
+  }
+  pickerEl.innerHTML = players.map(function(p) {
+    var taken = takenIds.indexOf(p.id) !== -1;
+    var checked = preSelectedIds.indexOf(p.id) !== -1;
+    return '<label style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card2);border-radius:8px;' + (taken ? 'opacity:0.4;' : 'cursor:pointer;') + '">' +
+      '<input type="checkbox" value="' + p.id + '" class="fantasy-pick-cb" ' + (taken ? 'disabled' : '') + (checked ? ' checked' : '') + ' onchange="updateFantasyPickCount()">' +
+      '<span>' + p.name + ' <span style="color:var(--muted);font-size:12px;">(' + p.position + ')</span>' + (taken ? ' <span style="color:#ff4444;font-size:11px;">— ZASEDEN</span>' : '') + '</span>' +
+    '</label>';
+  }).join('');
+  updateFantasyPickCount();
+}
+
+async function updateFantasyPickCount() {
+  var checked = document.querySelectorAll('.fantasy-pick-cb:checked').length;
+  var s = await getFantasySettings();
+  var el = document.getElementById('fantasyPickCount');
+  if (el) el.textContent = 'Izbranih: ' + checked + ' / ' + s.rosterSize;
+}
+
+async function createMyFantasyTeam() {
+  var teamName = document.getElementById('myFantasyTeamName').value.trim();
+  if (!teamName) { showToast('Vpiši ime ekipe!', true); return; }
+
+  var checked = Array.from(document.querySelectorAll('.fantasy-pick-cb:checked')).map(function(cb) { return cb.value; });
+  var settings = await getFantasySettings();
+  if (checked.length === 0) { showToast('Izberi vsaj enega igralca!', true); return; }
+  if (checked.length > settings.rosterSize) { showToast('Preveč igralcev izbranih (max ' + settings.rosterSize + ')!', true); return; }
+
+  if (settings.rosterMode === 'draft') {
+    var teamsSnap = await db.collection('fantasyTeams').get();
+    var takenIds = [];
+    teamsSnap.docs.forEach(function(d) {
+      if (d.id === currentUser.id || d.data()._placeholder) return;
+      takenIds = takenIds.concat(d.data().playerIds || []);
+    });
+    var conflict = checked.find(function(id) { return takenIds.indexOf(id) !== -1; });
+    if (conflict) {
+      showToast('Nekdo drug je medtem že izbral enega od tvojih igralcev — poskusi znova!', true);
+      renderFantasyPlayerPicker(checked);
+      return;
+    }
+  }
+
+  try {
+    await db.collection('fantasyTeams').doc(currentUser.id).set({
+      userId: currentUser.id, userName: currentUser.name, teamName: teamName,
+      playerIds: checked,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Ekipa "' + teamName + '" ustvarjena! 🏈');
+    initFantasyHomeTab();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri ustvarjanju ekipe!', true);
+  }
+}
+
+async function showEditFantasyTeam() {
+  var teamSnap = await db.collection('fantasyTeams').doc(currentUser.id).get();
+  if (!teamSnap.exists) return;
+  var team = teamSnap.data();
+
+  document.getElementById('fantasyHasTeam').classList.add('hidden');
+  document.getElementById('fantasyNoTeam').classList.remove('hidden');
+  document.getElementById('myFantasyTeamName').value = team.teamName;
+  fantasyEditingTeam = true;
+  await renderFantasyPlayerPicker(team.playerIds || []);
+
+  var btn = document.querySelector('#fantasyNoTeam .btn-main');
+  if (btn) { btn.textContent = 'SHRANI SPREMEMBE'; btn.setAttribute('onclick', 'saveEditedFantasyTeam()'); }
+}
+
+async function saveEditedFantasyTeam() {
+  var teamName = document.getElementById('myFantasyTeamName').value.trim();
+  if (!teamName) { showToast('Vpiši ime ekipe!', true); return; }
+
+  var checked = Array.from(document.querySelectorAll('.fantasy-pick-cb:checked')).map(function(cb) { return cb.value; });
+  var settings = await getFantasySettings();
+  if (checked.length === 0) { showToast('Izberi vsaj enega igralca!', true); return; }
+  if (checked.length > settings.rosterSize) { showToast('Preveč igralcev izbranih (max ' + settings.rosterSize + ')!', true); return; }
+
+  if (settings.rosterMode === 'draft') {
+    var teamsSnap = await db.collection('fantasyTeams').get();
+    var takenIds = [];
+    teamsSnap.docs.forEach(function(d) {
+      if (d.id === currentUser.id || d.data()._placeholder) return;
+      takenIds = takenIds.concat(d.data().playerIds || []);
+    });
+    var conflict = checked.find(function(id) { return takenIds.indexOf(id) !== -1; });
+    if (conflict) { showToast('Nekdo drug že ima enega od izbranih igralcev!', true); return; }
+  }
+
+  try {
+    await db.collection('fantasyTeams').doc(currentUser.id).update({
+      teamName: teamName, playerIds: checked, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Ekipa posodobljena! 🏈');
+    var btn = document.querySelector('#fantasyNoTeam .btn-main');
+    if (btn) { btn.textContent = 'USTVARI EKIPO'; btn.setAttribute('onclick', 'createMyFantasyTeam()'); }
+    fantasyEditingTeam = false;
+    initFantasyHomeTab();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri shranjevanju!', true);
+  }
+}
+
+async function renderMyFantasyTeam(team) {
+  document.getElementById('myFantasyTeamNameDisplay').textContent = '🏈 ' + team.teamName;
+
+  var statsSnap = await db.collection('fantasyPlayerStats').get();
+  var pointsByPlayer = {};
+  statsSnap.docs.forEach(function(d) {
+    var s = d.data();
+    if (s._placeholder) return;
+    pointsByPlayer[s.playerId] = (pointsByPlayer[s.playerId] || 0) + (s.fantasyPoints || 0);
+  });
+
+  var playersSnap = await db.collection('fantasyPlayers').get();
+  var allPlayers = playersSnap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+  var myPlayers = (team.playerIds || []).map(function(pid) {
+    var p = allPlayers.find(function(x) { return x.id === pid; });
+    return { name: p ? p.name : '(izbrisan igralec)', position: p ? p.position : '', points: pointsByPlayer[pid] || 0 };
+  });
+
+  var totalPoints = myPlayers.reduce(function(s, p) { return s + p.points; }, 0);
+  document.getElementById('myFantasyTotalPoints').textContent = (Math.round(totalPoints * 100) / 100) + ' točk skupaj';
+
+  document.getElementById('myFantasyRosterList').innerHTML = myPlayers.length
+    ? myPlayers.map(function(p) {
+        return '<div class="admin-pkg-row"><div style="flex:1;"><b>' + p.name + '</b> <span style="color:var(--muted);font-size:12px;">(' + p.position + ')</span></div><div style="font-weight:700;color:var(--orange);">' + (Math.round(p.points * 100) / 100) + ' pts</div></div>';
+      }).join('')
+    : '<div style="color:var(--muted);font-size:14px;">Prazna ekipa.</div>';
+
+  // Vse moje tekme (danes + zgodovina) — Firestore ne podpira OR poizvedbe, zato dve poizvedbi
+  var q1 = await db.collection('fantasyMatchups').where('team1UserId', '==', currentUser.id).get();
+  var q2 = await db.collection('fantasyMatchups').where('team2UserId', '==', currentUser.id).get();
+  var mine = q1.docs.concat(q2.docs)
+    .map(function(d) { return d.data(); })
+    .filter(function(m) { return !m._placeholder; })
+    .sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+
+  var today = fantasyToday();
+  var todayMatchup = mine.find(function(m) { return m.date === today; });
+  var todayEl = document.getElementById('fantasyTodayMatchup');
+
+  if (todayMatchup && !todayMatchup.resolved) {
+    var oppName2 = todayMatchup.team1UserId === currentUser.id ? todayMatchup.team2Name : todayMatchup.team1Name;
+    todayEl.innerHTML = '<div style="background:var(--card2);border:2px solid var(--orange);border-radius:10px;padding:16px;text-align:center;">' +
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">danes igraš proti</div>' +
+      '<div style="font-weight:800;font-size:18px;margin-bottom:10px;">' + oppName2 + '</div>' +
+      '<div style="color:var(--orange);font-weight:700;">⏳ Tekma še poteka — rezultat se razkrije zvečer</div>' +
+    '</div>';
+  } else if (todayMatchup && todayMatchup.resolved) {
+    var isTeam1 = todayMatchup.team1UserId === currentUser.id;
+    var myScore = isTeam1 ? todayMatchup.team1Points : todayMatchup.team2Points;
+    var oppName = isTeam1 ? todayMatchup.team2Name : todayMatchup.team1Name;
+    var oppScore = isTeam1 ? todayMatchup.team2Points : todayMatchup.team1Points;
+    var winning = myScore > oppScore;
+    var tied = myScore === oppScore;
+    var borderColor = winning ? '#4caf50' : tied ? 'var(--border)' : '#ff4444';
+    todayEl.innerHTML = '<div style="background:var(--card2);border:2px solid ' + borderColor + ';border-radius:10px;padding:16px;text-align:center;">' +
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">proti</div>' +
+      '<div style="font-weight:800;font-size:16px;margin-bottom:10px;">' + oppName + '</div>' +
+      '<div style="display:flex;justify-content:space-around;">' +
+        '<div><div style="font-size:24px;font-weight:800;color:' + (winning ? '#4caf50' : 'var(--text)') + ';">' + myScore + '</div><div style="font-size:11px;color:var(--muted);">TI</div></div>' +
+        '<div><div style="font-size:24px;font-weight:800;color:' + (!winning && !tied ? '#ff4444' : 'var(--text)') + ';">' + oppScore + '</div><div style="font-size:11px;color:var(--muted);">NASPROTNIK</div></div>' +
+      '</div>' +
+      '<div style="margin-top:10px;font-weight:700;color:' + (winning ? '#4caf50' : tied ? 'var(--muted)' : '#ff4444') + ';">' + (winning ? '😎 ZMAGAL SI DANES!' : tied ? '🤝 IZENAČENO' : '😬 IZGUBIL SI DANES') + '</div>' +
+    '</div>';
+  } else {
+    todayEl.innerHTML = '<div style="color:var(--muted);font-size:14px;">Za danes še ni tekme — počakaj, da jo admin generira. 📅</div>';
+  }
+
+  var history = mine.filter(function(m) { return m.date !== today && m.resolved; }).slice(0, 10);
+  document.getElementById('fantasyMatchupHistory').innerHTML = history.length === 0
+    ? '<div style="color:var(--muted);font-size:14px;">Še ni pretekle zgodovine.</div>'
+    : history.map(function(m) {
+        var isTeam1 = m.team1UserId === currentUser.id;
+        var myScore = isTeam1 ? m.team1Points : m.team2Points;
+        var oppName = isTeam1 ? m.team2Name : m.team1Name;
+        var oppScore = isTeam1 ? m.team2Points : m.team1Points;
+        var won = m.winnerUserId === currentUser.id;
+        return '<div class="admin-pkg-row"><div style="flex:1;"><b>' + m.date + '</b> proti ' + oppName + '<div style="font-size:12px;color:var(--muted);">' + myScore + ' – ' + oppScore + '</div></div><div style="font-weight:800;color:' + (won ? '#4caf50' : '#ff4444') + ';">' + (won ? 'ZMAGA' : 'PORAZ') + '</div></div>';
+      }).join('');
+
+  loadFantasyBettableMatchups();
 }
 
 async function loadAdminStats() {
