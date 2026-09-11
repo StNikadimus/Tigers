@@ -1777,7 +1777,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.19';
+var APP_VERSION = '2026-09-08.20';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -2121,10 +2121,12 @@ async function doForgotPassword() {
   var email = document.getElementById('loginEmail').value.trim();
   if (!email) { document.getElementById('loginError').textContent = 'Najprej vpiši svoj email zgoraj.'; return; }
   try {
-    await auth.sendPasswordResetEmail(email, getResetActionCodeSettings());
+    var settings = getResetActionCodeSettings();
+    if (settings) await auth.sendPasswordResetEmail(email, settings);
+    else await auth.sendPasswordResetEmail(email);
     showToast('Povezava za ponastavitev gesla poslana na ' + email + ' 📧');
   } catch(e) {
-    console.error(e);
+    console.error('sendPasswordResetEmail napaka:', e.code, e.message);
     document.getElementById('loginError').textContent = friendlyResetError(e);
   }
 }
@@ -2132,8 +2134,18 @@ async function doForgotPassword() {
 // Povezava v emailu vodi NAZAJ v to isto app (ne na generično Firebase
 // stran) — Firebase samo doda ?mode=resetPassword&oobCode=... na URL.
 function getResetActionCodeSettings() {
+  var origin = window.location.origin;
+  // Če testiraš prek file:// (dvoklik na datoteko) ali kakšnega drugega
+  // neveljavnega izvora, origin ni prava http(s) domena — Firebase bi tak
+  // "url" zavrnil in NE poslal emaila sploh. V tem primeru se varno vrnemo
+  // na privzet Firebase tok (email se še vedno pošlje, samo brez lepega
+  // preusmerjanja nazaj v app).
+  if (!origin || origin === 'null' || origin.indexOf('http') !== 0) {
+    console.warn('getResetActionCodeSettings: neveljaven origin (' + origin + ') — uporabljam privzet Firebase reset tok namesto in-app.');
+    return null;
+  }
   return {
-    url: window.location.origin + window.location.pathname,
+    url: origin + window.location.pathname,
     handleCodeInApp: true
   };
 }
@@ -3004,10 +3016,12 @@ async function showAdminLogin() {
 async function adminResetPassword() {
   if (!currentUser || !currentUser.email) return;
   try {
-    await auth.sendPasswordResetEmail(currentUser.email, getResetActionCodeSettings());
+    var settings = getResetActionCodeSettings();
+    if (settings) await auth.sendPasswordResetEmail(currentUser.email, settings);
+    else await auth.sendPasswordResetEmail(currentUser.email);
     showToast('Povezava za ponastavitev gesla poslana na ' + currentUser.email + ' 📧');
   } catch(e) {
-    console.error(e);
+    console.error('sendPasswordResetEmail napaka:', e.code, e.message);
     showToast('Napaka pri pošiljanju: ' + friendlyResetError(e), true);
   }
 }
