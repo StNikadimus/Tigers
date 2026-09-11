@@ -1702,6 +1702,26 @@
   </div>
 </div>
 
+<!-- Password Reset Modal (odpre se, ko uporabnik klikne povezavo iz emaila) -->
+<div id="passwordResetModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:380px;">
+    <h2>🔑 NASTAVI NOVO GESLO</h2>
+    <p>Za račun: <b style="color:var(--orange);" id="resetPassEmail">—</b></p>
+    <div style="margin-bottom:12px;">
+      <div class="field-label" style="margin-bottom:6px;">NOVO GESLO</div>
+      <input type="password" class="input-field" id="resetNewPass" placeholder="Vsaj 6 znakov...">
+    </div>
+    <div style="margin-bottom:12px;">
+      <div class="field-label" style="margin-bottom:6px;">POTRDI NOVO GESLO</div>
+      <input type="password" class="input-field" id="resetNewPassConfirm" placeholder="Ponovi geslo..."
+        onkeydown="if(event.key==='Enter') confirmPasswordReset()">
+    </div>
+    <div class="error-msg" id="resetPassError"></div>
+    <button class="btn-confirm" onclick="confirmPasswordReset()">SHRANI NOVO GESLO</button>
+    <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="document.getElementById('passwordResetModal').classList.add('hidden')">PREKLIČI</button>
+  </div>
+</div>
+
 <!-- Add to Home Screen (iOS) -->
 <div id="addHomeScreenModal" class="modal-overlay hidden">
   <div class="modal" style="max-width:380px;text-align:center;">
@@ -1757,7 +1777,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.18';
+var APP_VERSION = '2026-09-08.19';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -2101,11 +2121,74 @@ async function doForgotPassword() {
   var email = document.getElementById('loginEmail').value.trim();
   if (!email) { document.getElementById('loginError').textContent = 'Najprej vpiši svoj email zgoraj.'; return; }
   try {
-    await auth.sendPasswordResetEmail(email);
+    await auth.sendPasswordResetEmail(email, getResetActionCodeSettings());
     showToast('Povezava za ponastavitev gesla poslana na ' + email + ' 📧');
   } catch(e) {
     console.error(e);
-    document.getElementById('loginError').textContent = friendlyAuthError(e);
+    document.getElementById('loginError').textContent = friendlyResetError(e);
+  }
+}
+
+// Povezava v emailu vodi NAZAJ v to isto app (ne na generično Firebase
+// stran) — Firebase samo doda ?mode=resetPassword&oobCode=... na URL.
+function getResetActionCodeSettings() {
+  return {
+    url: window.location.origin + window.location.pathname,
+    handleCodeInApp: true
+  };
+}
+
+function friendlyResetError(e) {
+  if (e.code === 'auth/user-not-found') return 'Ta email ni registriran.';
+  if (e.code === 'auth/expired-action-code') return 'Ta povezava je potekla — zahtevaj novo.';
+  if (e.code === 'auth/invalid-action-code') return 'Ta povezava ni veljavna ali je bila že uporabljena.';
+  return friendlyAuthError(e);
+}
+
+// Ob nalaganju strani preveri, ali smo tu zato, ker je uporabnik kliknil
+// povezavo za ponastavitev gesla iz emaila (?mode=resetPassword&oobCode=...).
+var pendingResetCode = null;
+function checkForPasswordResetLink() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('mode') !== 'resetPassword') return;
+  var oobCode = params.get('oobCode');
+  if (!oobCode) return;
+
+  // Počisti URL takoj, da se ob morebitnem osvežitvi ne poskuša znova.
+  history.replaceState({}, document.title, window.location.pathname);
+
+  auth.verifyPasswordResetCode(oobCode).then(function(email) {
+    pendingResetCode = oobCode;
+    document.getElementById('resetPassEmail').textContent = email;
+    document.getElementById('resetNewPass').value = '';
+    document.getElementById('resetNewPassConfirm').value = '';
+    document.getElementById('resetPassError').textContent = '';
+    document.getElementById('passwordResetModal').classList.remove('hidden');
+  }).catch(function(e) {
+    console.error(e);
+    showToast(friendlyResetError(e), true);
+  });
+}
+
+async function confirmPasswordReset() {
+  var newPass = document.getElementById('resetNewPass').value;
+  var confirmPass = document.getElementById('resetNewPassConfirm').value;
+  var errEl = document.getElementById('resetPassError');
+  errEl.textContent = '';
+
+  if (!pendingResetCode) { errEl.textContent = 'Koda za ponastavitev manjka — poskusi znova iz emaila.'; return; }
+  if (!newPass || newPass.length < 6) { errEl.textContent = 'Geslo mora imeti vsaj 6 znakov!'; return; }
+  if (newPass !== confirmPass) { errEl.textContent = 'Gesli se ne ujemata!'; return; }
+
+  try {
+    await auth.confirmPasswordReset(pendingResetCode, newPass);
+    document.getElementById('passwordResetModal').classList.add('hidden');
+    pendingResetCode = null;
+    showToast('Geslo uspešno spremenjeno! Prijavi se z novim geslom. 🔑');
+    showAuthModal('login');
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = friendlyResetError(e);
   }
 }
 
@@ -2921,11 +3004,11 @@ async function showAdminLogin() {
 async function adminResetPassword() {
   if (!currentUser || !currentUser.email) return;
   try {
-    await auth.sendPasswordResetEmail(currentUser.email);
+    await auth.sendPasswordResetEmail(currentUser.email, getResetActionCodeSettings());
     showToast('Povezava za ponastavitev gesla poslana na ' + currentUser.email + ' 📧');
   } catch(e) {
     console.error(e);
-    showToast('Napaka pri pošiljanju: ' + (e.message || e), true);
+    showToast('Napaka pri pošiljanju: ' + friendlyResetError(e), true);
   }
 }
 
@@ -5185,6 +5268,7 @@ function dismissAddHomeScreen(forever) {
   }
 }
 maybeShowAddHomeScreen();
+checkForPasswordResetLink();
 
 // ===== ZAZNAVA NOVE VERZIJE (pomembno za iPhone Add-to-Home-Screen) =====
 // Ko je stran shranjena kot bližnjica na domačem zaslonu, jo iOS pogosto
