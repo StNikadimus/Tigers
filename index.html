@@ -1014,7 +1014,7 @@
       </div>
       <div class="error-msg" id="loginError"></div>
       <button class="btn-confirm" onclick="doLogin()">PRIJAVI SE →</button>
-      <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="doForgotPassword()">Pozabljeno geslo?</button>
+      <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="showForgotPasswordModal()">Pozabljeno geslo?</button>
     </div>
 
     <!-- Registracija -->
@@ -1722,6 +1722,32 @@
   </div>
 </div>
 
+<!-- Forgot Password Modal -->
+<div id="forgotPasswordModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:380px;">
+    <div id="forgotPassStep1">
+      <h2>🔑 POZABLJENO GESLO</h2>
+      <p>Vpiši svoj email in poslali ti bomo povezavo za ponastavitev gesla.</p>
+      <div style="margin-bottom:12px;">
+        <div class="field-label" style="margin-bottom:6px;">EMAIL</div>
+        <input type="email" class="input-field" id="forgotPassEmail" placeholder="tvoj@email.com"
+          onkeydown="if(event.key==='Enter') submitForgotPassword()">
+      </div>
+      <div class="error-msg" id="forgotPassError"></div>
+      <button class="btn-confirm" onclick="submitForgotPassword()">POŠLJI</button>
+      <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="closeForgotPasswordModal()">PREKLIČI</button>
+    </div>
+    <div id="forgotPassStep2" class="hidden" style="text-align:center;">
+      <div style="font-size:48px;margin-bottom:10px;">📧</div>
+      <h2>POSLANO!</h2>
+      <p>Povezava za ponastavitev gesla je bila poslana na <b style="color:var(--orange);" id="forgotPassSentEmail">—</b>.</p>
+      <p style="color:#ff9800;font-weight:700;font-size:14px;">Če je ne vidiš, je ZELO VERJETNO V MAPI SPAM / VSILJENA POŠTA!</p>
+      <button class="btn-sm" id="forgotResendBtn" style="width:100%;" onclick="resendForgotPassword()" disabled>Pošlji še enkrat</button>
+      <button class="btn-confirm" style="margin-top:10px;" onclick="closeForgotPasswordModal()">ZAPRI</button>
+    </div>
+  </div>
+</div>
+
 <!-- Add to Home Screen (iOS) -->
 <div id="addHomeScreenModal" class="modal-overlay hidden">
   <div class="modal" style="max-width:380px;text-align:center;">
@@ -1777,7 +1803,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.21';
+var APP_VERSION = '2026-09-08.22';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -2117,17 +2143,72 @@ async function doLogin() {
   }
 }
 
-async function doForgotPassword() {
-  var email = document.getElementById('loginEmail').value.trim();
-  if (!email) { document.getElementById('loginError').textContent = 'Najprej vpiši svoj email zgoraj.'; return; }
+function showForgotPasswordModal() {
+  document.getElementById('forgotPassStep1').classList.remove('hidden');
+  document.getElementById('forgotPassStep2').classList.add('hidden');
+  document.getElementById('forgotPassEmail').value = '';
+  document.getElementById('forgotPassError').textContent = '';
+  document.getElementById('forgotPasswordModal').classList.remove('hidden');
+}
+
+function closeForgotPasswordModal() {
+  document.getElementById('forgotPasswordModal').classList.add('hidden');
+  if (forgotPassResendTimer) clearInterval(forgotPassResendTimer);
+}
+
+async function submitForgotPassword() {
+  var email = document.getElementById('forgotPassEmail').value.trim();
+  var errEl = document.getElementById('forgotPassError');
+  errEl.textContent = '';
+  if (!email) { errEl.textContent = 'Vpiši email!'; return; }
+
   try {
     var settings = getResetActionCodeSettings();
     if (settings) await auth.sendPasswordResetEmail(email, settings);
     else await auth.sendPasswordResetEmail(email);
-    showToast('Povezava za ponastavitev gesla poslana na ' + email + ' 📧');
+
+    document.getElementById('forgotPassSentEmail').textContent = email;
+    document.getElementById('forgotPassStep1').classList.add('hidden');
+    document.getElementById('forgotPassStep2').classList.remove('hidden');
+    startForgotPassResendCooldown();
   } catch(e) {
     console.error('sendPasswordResetEmail napaka:', e.code, e.message);
-    document.getElementById('loginError').textContent = friendlyResetError(e);
+    errEl.textContent = friendlyResetError(e);
+  }
+}
+
+var forgotPassResendTimer = null;
+var forgotPassResendCooldown = 0;
+function startForgotPassResendCooldown() {
+  forgotPassResendCooldown = 60;
+  var btn = document.getElementById('forgotResendBtn');
+  btn.disabled = true;
+  if (forgotPassResendTimer) clearInterval(forgotPassResendTimer);
+  function tick() {
+    btn.textContent = 'Pošlji še enkrat (' + forgotPassResendCooldown + 's)';
+    forgotPassResendCooldown--;
+    if (forgotPassResendCooldown < 0) {
+      clearInterval(forgotPassResendTimer);
+      btn.disabled = false;
+      btn.textContent = 'Pošlji še enkrat';
+    }
+  }
+  tick();
+  forgotPassResendTimer = setInterval(tick, 1000);
+}
+
+async function resendForgotPassword() {
+  var email = document.getElementById('forgotPassSentEmail').textContent;
+  if (!email || email === '—') return;
+  try {
+    var settings = getResetActionCodeSettings();
+    if (settings) await auth.sendPasswordResetEmail(email, settings);
+    else await auth.sendPasswordResetEmail(email);
+    showToast('Email ponovno poslan! 📧');
+    startForgotPassResendCooldown();
+  } catch(e) {
+    console.error('sendPasswordResetEmail napaka:', e.code, e.message);
+    showToast(friendlyResetError(e), true);
   }
 }
 
