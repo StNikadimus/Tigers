@@ -2100,7 +2100,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.32';
+var APP_VERSION = '2026-09-08.33';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -5263,6 +5263,8 @@ async function loadEventGroupOptions() {
 
   var endsAtEl = document.getElementById('newEndsAt');
   if (endsAtEl && !endsAtEl.value) endsAtEl.value = defaultEndsAtLocal();
+  var endsAtEl2 = document.getElementById('newEndsAt2');
+  if (endsAtEl2 && !endsAtEl2.value) endsAtEl2.value = defaultEndsAtLocal();
 }
 
 // Vrne "zdaj + 24h" v formatu, ki ga pričakuje <input type="datetime-local">
