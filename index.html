@@ -1266,6 +1266,16 @@
     <!-- Bet form -->
     <div class="bet-form">
       <h3>POSTAVI STAVO</h3>
+      <div id="overUnderInfo" class="hidden" style="text-align:center;margin-bottom:14px;">
+        <div style="font-size:13px;color:var(--muted);">ČRTA</div>
+        <div style="font-size:26px;font-weight:800;color:var(--orange);" id="overUnderLineDisplay">—</div>
+        <button class="btn-sm" style="margin-top:10px;" onclick="toggleExactGuessSlider()" id="exactGuessToggleBtn">🎯 Poskusi uganiti TOČNO število (2x izplačilo!)</button>
+        <div id="exactGuessSliderWrap" class="hidden" style="margin-top:14px;">
+          <input type="range" id="exactGuessSlider" style="width:100%;" oninput="updateExactGuessDisplay()">
+          <div style="font-size:24px;font-weight:800;color:var(--orange);margin-top:6px;" id="exactGuessDisplay">—</div>
+          <button class="btn-confirm" style="margin-top:10px;" onclick="useExactGuess()">UPORABI TO ŠTEVILKO</button>
+        </div>
+      </div>
       <div class="options-group" id="optionsGroup"></div>
       <div class="bet-amount-wrap">
         <div>
@@ -1368,7 +1378,14 @@
           <label>VPRAŠANJE</label>
           <input type="text" id="newQ" placeholder="Npr: Ali bomo zmagali naslednjo tekmo?">
         </div>
-        <div class="form-grid">
+        <div class="form-row">
+          <label>TIP STAVE</label>
+          <select class="resolve-select" id="newBetType" style="width:100%;height:42px;" onchange="toggleBetTypeUI()">
+            <option value="choice">Izbira (klasično — opcije)</option>
+            <option value="overUnder">📊 Več / Manj (številka)</option>
+          </select>
+        </div>
+        <div id="choiceOptionsWrap" class="form-grid">
           <div class="form-row">
             <label>ODGOVOR 1 *</label>
             <input type="text" id="newOpt1" placeholder="Npr: Da">
@@ -1384,6 +1401,38 @@
           <div class="form-row">
             <label>AKTIVNO DO</label>
             <input type="datetime-local" id="newEndsAt">
+          </div>
+        </div>
+        <div id="overUnderWrap" class="hidden">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>ENOTA</label>
+              <input type="text" id="newBetUnit" placeholder="Npr: golov, minut, kartonov">
+            </div>
+            <div class="form-row">
+              <label>AKTIVNO DO</label>
+              <input type="datetime-local" id="newEndsAt2">
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>MIN (slajder)</label>
+              <input type="number" id="newBetSliderMin" value="0" oninput="syncBetLineSlider()">
+            </div>
+            <div class="form-row">
+              <label>MAX (slajder)</label>
+              <input type="number" id="newBetSliderMax" value="10" oninput="syncBetLineSlider()">
+            </div>
+            <div class="form-row">
+              <label>KORAK</label>
+              <input type="number" id="newBetSliderStep" value="0.5" step="0.5" oninput="syncBetLineSlider()">
+            </div>
+          </div>
+          <div class="form-row">
+            <label>ČRTA (LINE)</label>
+            <input type="range" id="newBetLineSlider" min="0" max="10" step="0.5" value="2.5" style="width:100%;" oninput="document.getElementById('newBetLineDisplay').textContent = this.value">
+            <div style="text-align:center;font-size:28px;font-weight:800;color:var(--orange);margin-top:8px;" id="newBetLineDisplay">2.5</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">Igralci bodo stavili VEČ ali MANJ od te številke.</div>
           </div>
         </div>
         <div class="form-row">
@@ -2036,7 +2085,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.29';
+var APP_VERSION = '2026-09-08.31';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -3019,6 +3068,7 @@ function showHome() {
 async function openEvent(id) {
   currentEventId = id;
   selectedOption = null;
+  currentExactGuess = null;
   const ev = allEvents.find(e => e.id === id);
   if (!ev) return;
 
@@ -3031,6 +3081,18 @@ async function openEvent(id) {
   document.getElementById('optionsGroup').innerHTML = opts.map(o =>
     `<button class="opt-btn" onclick="selectOption('${o}')">${o}</button>`
   ).join('');
+
+  // 📊 Več/Manj tip stave: prikaži črto in omogoči slajder za natančno uganitev.
+  const isOverUnder = ev.betType === 'overUnder';
+  document.getElementById('overUnderInfo').classList.toggle('hidden', !isOverUnder);
+  document.getElementById('exactGuessSliderWrap').classList.add('hidden');
+  if (isOverUnder) {
+    document.getElementById('overUnderLineDisplay').textContent = ev.line + ' ' + (ev.unit || '');
+    const slider = document.getElementById('exactGuessSlider');
+    slider.min = ev.sliderMin; slider.max = ev.sliderMax; slider.step = ev.sliderStep || 0.5;
+    slider.value = ev.line;
+    updateExactGuessDisplay();
+  }
 
   // Spicy Mode (🌶️): stave v pravem denarju (€), ne v kovancih. Zneski
   // niso vezani na uporabnikov coins balance in zahtevajo potrditev
@@ -3138,12 +3200,33 @@ function drawChart(ev) {
   });
 }
 
+var currentExactGuess = null;
+
 function selectOption(opt) {
   selectedOption = opt;
+  currentExactGuess = null; // ročna izbira prekliče morebitno prej nastavljeno natančno uganitev
   document.querySelectorAll('.opt-btn').forEach(b => {
     b.classList.toggle('selected', b.textContent === opt);
   });
   updateSummary();
+}
+
+function toggleExactGuessSlider() {
+  document.getElementById('exactGuessSliderWrap').classList.toggle('hidden');
+}
+
+function updateExactGuessDisplay() {
+  document.getElementById('exactGuessDisplay').textContent = document.getElementById('exactGuessSlider').value;
+}
+
+function useExactGuess() {
+  var ev = allEvents.find(function(e) { return e.id === currentEventId; });
+  if (!ev) return;
+  var guess = parseFloat(document.getElementById('exactGuessSlider').value);
+  var pick = guess > ev.line ? 'VEČ' : 'MANJ';
+  selectOption(pick); // to počisti currentExactGuess na null
+  currentExactGuess = guess; // nastavimo TAKOJ po klicu selectOption
+  showToast('Natančna uganitev nastavljena: ' + guess + ' ' + ev.unit + ' (' + pick + ')');
 }
 
 function setAmount(n) {
@@ -3197,6 +3280,7 @@ async function placeBet() {
         groupId: ev.groupId || currentUser.groupId,
         question: ev.question,
         option: selectedOption,
+        exactGuess: currentExactGuess,
         amount,
         isSpicy: true,
         result: 'pending',
@@ -3237,6 +3321,7 @@ async function placeBet() {
         groupId: ev.groupId || currentUser.groupId,
         question: ev.question,
         option: selectedOption,
+        exactGuess: currentExactGuess,
         amount,
         result: 'pending',
         payout: 0,
@@ -5101,27 +5186,36 @@ async function loadAdminEvents() {
   }
 
   list.innerHTML = events.map(e => {
+    const isOverUnder = e.betType === 'overUnder';
     const opts = [e.opt1, e.opt2, e.opt3].filter(Boolean);
     const resolveOpts = opts.map(o => `<option value="${o}">${o}</option>`).join('');
     const unit = e.spicyMode ? '€' : 'kovancev';
+    const optsLabel = isOverUnder ? `Črta: ${e.line} ${e.unit || ''} (VEČ/MANJ)` : `Opcije: ${opts.join(' / ')}`;
     return `
     <div class="admin-event-item">
       <div>
-        <div class="admin-event-q">${e.question} ${e.spicyMode ? `<span style="font-size:11px;color:#ff3b30;border:1px solid #ff3b30;border-radius:5px;padding:1px 8px;margin-left:6px;">🌶️ SPICY</span>` : ''} ${e.groupName ? `<span style="font-size:11px;color:var(--orange);border:1px solid var(--orange);border-radius:5px;padding:1px 8px;margin-left:6px;">${e.groupName}</span>` : ''}</div>
-        <div class="admin-event-opts">Opcije: ${opts.join(' / ')} · Stavkov: ${e.totalBets||0} ${unit} · ⏱ ${timeLeft(e.endsAt)}${e.createdByName ? ` · 👤 ${e.createdByName}` : ''}</div>
+        <div class="admin-event-q">${e.question} ${isOverUnder ? `<span style="font-size:11px;color:#2196f3;border:1px solid #2196f3;border-radius:5px;padding:1px 8px;margin-left:6px;">📊 VEČ/MANJ</span>` : ''} ${e.spicyMode ? `<span style="font-size:11px;color:#ff3b30;border:1px solid #ff3b30;border-radius:5px;padding:1px 8px;margin-left:6px;">🌶️ SPICY</span>` : ''} ${e.groupName ? `<span style="font-size:11px;color:var(--orange);border:1px solid var(--orange);border-radius:5px;padding:1px 8px;margin-left:6px;">${e.groupName}</span>` : ''}</div>
+        <div class="admin-event-opts">${optsLabel} · Stavkov: ${e.totalBets||0} ${unit} · ⏱ ${timeLeft(e.endsAt)}${e.createdByName ? ` · 👤 ${e.createdByName}` : ''}</div>
         ${e.excludedUserNames && e.excludedUserNames.length ? `<div style="font-size:12px;color:#ef5350;margin-top:4px;">🚫 Ne morejo staviti: ${e.excludedUserNames.join(', ')}</div>` : ''}
-        ${e.resolved ? `<div style="margin-top:6px;"><span class="resolved-tag">✓ REŠENO: ${e.winner}</span></div>` : ''}
+        ${e.resolved ? `<div style="margin-top:6px;"><span class="resolved-tag">✓ REŠENO: ${isOverUnder ? (e.actualValue + ' ' + (e.unit||'') + ' → ' + e.winner) : e.winner}</span></div>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">
-        ${!e.resolved ? `
+        ${!e.resolved ? (isOverUnder ? `
+          <input type="number" class="input-field" id="actual_${e.id}" placeholder="Dejanska vrednost" step="${e.sliderStep||0.5}" style="width:160px;margin-bottom:0;">
+          <button class="btn-resolve" onclick="resolveEvent('${e.id}')">RAZREŠI</button>
+          <button class="btn-extend" onclick="extendEvent('${e.id}')">+24h ⏱</button>
+        ` : `
           <select class="resolve-select" id="sel_${e.id}">${resolveOpts}</select>
           <button class="btn-resolve" onclick="resolveEvent('${e.id}')">RAZREŠI</button>
           <button class="btn-extend" onclick="extendEvent('${e.id}')">+24h ⏱</button>
+        `) : (isOverUnder ? `
+          <span style="font-size:12px;color:var(--muted);">Za popravek: razveljavi in razreši znova</span>
+          <button class="btn-unresolve" onclick="unresolveEvent('${e.id}')">↩️ RAZVELJAVI</button>
         ` : `
           <select class="resolve-select" id="resel_${e.id}">${resolveOpts}</select>
           <button class="btn-change-winner" onclick="changeWinner('${e.id}')">✏️ SPREMENI ZMAGOVALCA</button>
           <button class="btn-unresolve" onclick="unresolveEvent('${e.id}')">↩️ RAZVELJAVI</button>
-        `}
+        `)}
         <button class="btn-delete-event" onclick="deleteEvent('${e.id}')">🗑 IZBRIŠI</button>
       </div>
     </div>`;
@@ -5154,6 +5248,23 @@ function defaultEndsAtLocal() {
   var d = new Date(Date.now() + 24 * 3600 * 1000);
   var pad = function(n) { return String(n).padStart(2, '0'); };
   return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function toggleBetTypeUI() {
+  var isOverUnder = document.getElementById('newBetType').value === 'overUnder';
+  document.getElementById('choiceOptionsWrap').classList.toggle('hidden', isOverUnder);
+  document.getElementById('overUnderWrap').classList.toggle('hidden', !isOverUnder);
+}
+
+function syncBetLineSlider() {
+  var min = parseFloat(document.getElementById('newBetSliderMin').value) || 0;
+  var max = parseFloat(document.getElementById('newBetSliderMax').value) || 10;
+  var step = parseFloat(document.getElementById('newBetSliderStep').value) || 0.5;
+  var slider = document.getElementById('newBetLineSlider');
+  slider.min = min; slider.max = max; slider.step = step;
+  if (parseFloat(slider.value) < min) slider.value = min;
+  if (parseFloat(slider.value) > max) slider.value = max;
+  document.getElementById('newBetLineDisplay').textContent = slider.value;
 }
 
 var newEventExcluded = []; // {id, name} igralcev, ki ne smejo staviti na trenutno stavo v pripravi
@@ -5206,39 +5317,70 @@ function renderExcludedChips() {
 }
 
 async function ustvariStavo() {
+  const betType = document.getElementById('newBetType').value;
   const q = document.getElementById('newQ').value.trim();
-  const o1 = document.getElementById('newOpt1').value.trim();
-  const o2 = document.getElementById('newOpt2').value.trim();
-  const o3 = document.getElementById('newOpt3').value.trim();
-  const endsAtStr = document.getElementById('newEndsAt').value;
   const groupId = document.getElementById('newEventGroup').value;
 
-  if (!q || !o1 || !o2) { showToast('Vpiši vprašanje in vsaj 2 odgovora!', true); return; }
+  if (!q) { showToast('Vpiši vprašanje!', true); return; }
   if (!groupId) { showToast('Izberi skupino!', true); return; }
-  if (!endsAtStr) { showToast('Izberi datum in uro konca stave!', true); return; }
-
-  const endsAt = new Date(endsAtStr);
-  if (isNaN(endsAt.getTime()) || endsAt.getTime() <= Date.now()) {
-    showToast('Datum konca mora biti v prihodnosti!', true);
-    return;
-  }
 
   const groupObj = allGroups.find(g => g.id === groupId);
   const groupName = groupObj ? groupObj.name : (currentAdmin.groupName || '');
   const isSpicy = !!(groupObj && groupObj.spicyMode);
 
-  await db.collection('events').add({
-    question: q, opt1: o1, opt2: o2,
-    opt3: o3 || null,
-    groupId: groupId, groupName: groupName,
-    spicyMode: isSpicy,
-    excludedUserIds: newEventExcluded.map(function(u) { return u.id; }),
-    excludedUserNames: newEventExcluded.map(function(u) { return u.name; }),
-    createdBy: currentAdmin.id, createdByName: currentAdmin.name,
-    endsAt, resolved: false, winner: null,
-    bets: {}, totalBets: 0,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
+  let eventData;
+
+  if (betType === 'overUnder') {
+    const unit = document.getElementById('newBetUnit').value.trim();
+    const line = parseFloat(document.getElementById('newBetLineSlider').value);
+    const sliderMin = parseFloat(document.getElementById('newBetSliderMin').value);
+    const sliderMax = parseFloat(document.getElementById('newBetSliderMax').value);
+    const sliderStep = parseFloat(document.getElementById('newBetSliderStep').value) || 0.5;
+    const endsAtStr = document.getElementById('newEndsAt2').value;
+
+    if (!unit) { showToast('Vpiši enoto (npr. "golov")!', true); return; }
+    if (isNaN(line)) { showToast('Nastavi črto s slajderjem!', true); return; }
+    if (!endsAtStr) { showToast('Izberi datum in uro konca stave!', true); return; }
+    const endsAt = new Date(endsAtStr);
+    if (isNaN(endsAt.getTime()) || endsAt.getTime() <= Date.now()) { showToast('Datum konca mora biti v prihodnosti!', true); return; }
+
+    eventData = {
+      question: q, betType: 'overUnder',
+      opt1: 'VEČ', opt2: 'MANJ', opt3: null,
+      unit: unit, line: line, sliderMin: sliderMin, sliderMax: sliderMax, sliderStep: sliderStep,
+      actualValue: null,
+      groupId: groupId, groupName: groupName, spicyMode: isSpicy,
+      excludedUserIds: newEventExcluded.map(function(u) { return u.id; }),
+      excludedUserNames: newEventExcluded.map(function(u) { return u.name; }),
+      createdBy: currentAdmin.id, createdByName: currentAdmin.name,
+      endsAt, resolved: false, winner: null,
+      bets: {}, totalBets: 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+  } else {
+    const o1 = document.getElementById('newOpt1').value.trim();
+    const o2 = document.getElementById('newOpt2').value.trim();
+    const o3 = document.getElementById('newOpt3').value.trim();
+    const endsAtStr = document.getElementById('newEndsAt').value;
+
+    if (!o1 || !o2) { showToast('Vpiši vsaj 2 odgovora!', true); return; }
+    if (!endsAtStr) { showToast('Izberi datum in uro konca stave!', true); return; }
+    const endsAt = new Date(endsAtStr);
+    if (isNaN(endsAt.getTime()) || endsAt.getTime() <= Date.now()) { showToast('Datum konca mora biti v prihodnosti!', true); return; }
+
+    eventData = {
+      question: q, betType: 'choice', opt1: o1, opt2: o2, opt3: o3 || null,
+      groupId: groupId, groupName: groupName, spicyMode: isSpicy,
+      excludedUserIds: newEventExcluded.map(function(u) { return u.id; }),
+      excludedUserNames: newEventExcluded.map(function(u) { return u.name; }),
+      createdBy: currentAdmin.id, createdByName: currentAdmin.name,
+      endsAt, resolved: false, winner: null,
+      bets: {}, totalBets: 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+  }
+
+  await db.collection('events').add(eventData);
 
   // Obvesti vse člane skupine (razen ustvarjalca), da je na voljo nova stava.
   try {
@@ -5256,6 +5398,8 @@ async function ustvariStavo() {
   document.getElementById('newOpt2').value = '';
   document.getElementById('newOpt3').value = '';
   document.getElementById('newEndsAt').value = defaultEndsAtLocal();
+  document.getElementById('newEndsAt2').value = defaultEndsAtLocal();
+  document.getElementById('newBetUnit').value = '';
   newEventExcluded = [];
   renderExcludedChips();
   showToast('Stava ustvarjena!' + (isSpicy ? ' 🌶️' : ' ✅'));
@@ -5264,15 +5408,25 @@ async function ustvariStavo() {
 }
 
 async function resolveEvent(eventId) {
-  const selEl = document.getElementById(`sel_${eventId}`);
-  const winner = selEl ? selEl.value : null;
-  if (!winner) return;
-
   const ev = allEvents.find(e => e.id === eventId);
   if (!ev) return;
   const isSpicy = !!ev.spicyMode;
+  const isOverUnder = ev.betType === 'overUnder';
 
-  if (!confirm(`Razreši stavo "${ev.question}" z zmagovalcem "${winner}"? Tega ni enostavno razveljaviti.`)) return;
+  let winner, actualValue = null;
+
+  if (isOverUnder) {
+    const actualEl = document.getElementById(`actual_${eventId}`);
+    actualValue = actualEl ? parseFloat(actualEl.value) : NaN;
+    if (isNaN(actualValue)) { showToast('Vpiši dejansko vrednost!', true); return; }
+    winner = actualValue > ev.line ? 'VEČ' : (actualValue < ev.line ? 'MANJ' : 'PUSH');
+  } else {
+    const selEl = document.getElementById(`sel_${eventId}`);
+    winner = selEl ? selEl.value : null;
+    if (!winner) return;
+  }
+
+  if (!confirm(`Razreši stavo "${ev.question}" ${isOverUnder ? `(dejanska vrednost: ${actualValue} ${ev.unit||''})` : `z zmagovalcem "${winner}"`}? Tega ni enostavno razveljaviti.`)) return;
 
   const btn = document.querySelector(`button[onclick="resolveEvent('${eventId}')"]`);
   if (btn) { btn.disabled = true; btn.textContent = 'RAZREŠUJEM...'; }
@@ -5280,7 +5434,9 @@ async function resolveEvent(eventId) {
   const failedUsers = [];
 
   try {
-    await db.collection('events').doc(eventId).update({ resolved: true, winner });
+    const updateData = { resolved: true, winner };
+    if (isOverUnder) updateData.actualValue = actualValue;
+    await db.collection('events').doc(eventId).update(updateData);
 
     const betsSnap = await db.collection('bets').where('eventId', '==', eventId).where('result', '==', 'pending').get();
     let betDocs = betsSnap.docs.filter(d => !d.data()._placeholder);
@@ -5290,6 +5446,32 @@ async function resolveEvent(eventId) {
     // miru — money manager jih mora prej potrditi ali igralec ni plačal.
     if (isSpicy) {
       betDocs = betDocs.filter(d => d.data().paymentStatus === 'confirmed');
+    }
+
+    // 📊 PUSH (samo Več/Manj, ko je dejanska vrednost TOČNO enaka črti) —
+    // nihče ne zmaga niti izgubi, vsem se samo vrne vložek (ali se pri
+    // spicy stavah samo označi kot "brez rezultata", brez izplačila).
+    if (winner === 'PUSH') {
+      for (const bd of betDocs) {
+        try {
+          const b = bd.data();
+          if (isSpicy) {
+            await db.collection('bets').doc(bd.id).update({ result: 'push', payout: 0, payoutStatus: 'not_applicable' });
+            await sendNotification(b.userId, `🔄 Stava "${ev.question}" izenačena natanko na črti (${actualValue} ${ev.unit||''}) — brez zmagovalca, vplačilo se šteje kot vrnjeno.`, 'bet_resolved');
+          } else {
+            await db.collection('bets').doc(bd.id).update({ result: 'push', payout: b.amount });
+            const uSnap = await db.collection('users').doc(b.userId).get();
+            if (uSnap.exists) await db.collection('users').doc(b.userId).update({ coins: (uSnap.data().coins || 0) + b.amount });
+            await sendNotification(b.userId, `🔄 Stava "${ev.question}" izenačena natanko na črti (${actualValue} ${ev.unit||''}) — tvoj vložek (${b.amount} 🪙) je bil vrnjen.`, 'bet_resolved');
+          }
+        } catch(betErr) {
+          console.error('Napaka pri PUSH obdelavi stave:', betErr);
+          failedUsers.push(bd.data().userName || bd.data().userId);
+        }
+      }
+      showToast(failedUsers.length > 0 ? `Stava izenačena (PUSH), a napaka pri: ${failedUsers.join(', ')}` : 'Stava izenačena natanko na črti — vsem vrnjen vložek (PUSH). 🔄');
+      location.reload();
+      return;
     }
 
     const totalPool = betDocs.reduce((s, d) => s + d.data().amount, 0);
@@ -5311,7 +5493,12 @@ async function resolveEvent(eventId) {
       try {
         const b = bd.data();
         const isWin = b.option === winner;
-        const payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
+        // 🎯 Bonus 2x za natančno uganitev: samo pri Več/Manj stavah, samo
+        // če je igralec DEJANSKO uporabil slajder (exactGuess ni prazen) IN
+        // se njegova natančna uganitev ujema z dejansko vrednostjo natanko.
+        const exactBonus = isOverUnder && isWin && b.exactGuess !== null && b.exactGuess !== undefined && b.exactGuess === actualValue;
+        let payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
+        if (exactBonus) payout = payout * 2;
 
         if (isSpicy) {
           await db.collection('bets').doc(bd.id).update({
@@ -5327,9 +5514,9 @@ async function resolveEvent(eventId) {
             });
           }
           if (isWin) {
-            await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Money manager ti dolguje ${payout} € (čaka izplačilo).`, 'bet_resolved');
+            await sendNotification(b.userId, `🏆 Zmaga!${exactBonus ? ' 🎯 TOČNA UGANITEV — 2x BONUS!' : ''} Stava "${ev.question}" — izbira ${b.option} je zmagala! Money manager ti dolguje ${payout} € (čaka izplačilo).`, 'bet_resolved');
             if (groupManagerId) {
-              await sendNotification(groupManagerId, `💸 ${b.userName} je zmagal ${payout} € v stavi "${ev.question}" — dolguješ mu izplačilo.`, 'payout_pending');
+              await sendNotification(groupManagerId, `💸 ${b.userName} je zmagal ${payout} € v stavi "${ev.question}"${exactBonus ? ' (2x bonus za točno uganitev!)' : ''} — dolguješ mu izplačilo.`, 'payout_pending');
             }
           } else {
             await sendNotification(b.userId, `😔 Izguba. Stava "${ev.question}" — zmagal je ${winner}. Boljšo srečo naslednjič!`, 'bet_resolved');
@@ -5345,7 +5532,7 @@ async function resolveEvent(eventId) {
                 totalBets: (uSnap.data().totalBets || 0) + 1
               });
             }
-            await sendNotification(b.userId, `🏆 Zmaga! Stava "${ev.question}" — izbira ${b.option} je zmagala! Prejel si +${payout} 🪙`, 'bet_resolved');
+            await sendNotification(b.userId, `🏆 Zmaga!${exactBonus ? ' 🎯 TOČNA UGANITEV — 2x BONUS!' : ''} Stava "${ev.question}" — izbira ${b.option} je zmagala! Prejel si +${payout} 🪙`, 'bet_resolved');
           } else {
             const uSnap = await db.collection('users').doc(b.userId).get();
             if (uSnap.exists) {
@@ -6215,13 +6402,25 @@ async function unresolveEvent(eventId) {
               wins: Math.max(0, (uSnap.data().wins || 0) - 1)
             });
           }
+        } else if (b.result === 'push') {
+          // PUSH je ob razrešitvi vrnil poln vložek — pri razveljavitvi ga
+          // vzamemo nazaj, da se vrnemo v stanje "stava aktivna, vložek
+          // odštet" (enako kot takoj po placeBet, preden je bila razrešena).
+          const uSnap = await db.collection('users').doc(b.userId).get();
+          if (uSnap.exists) {
+            await db.collection('users').doc(b.userId).update({
+              coins: Math.max(0, (uSnap.data().coins || 0) - b.amount)
+            });
+          }
         }
         await db.collection('bets').doc(bd.id).update({ result: 'pending', payout: 0 });
         await sendNotification(b.userId, '↩️ Stava "' + (b.question || '') + '" je bila razveljavljena. Tvoji kovanci so bili vrnjeni!', 'bet_resolved');
       }
     }
 
-    await db.collection('events').doc(eventId).update({ resolved: false, winner: null });
+    const unresolveData = { resolved: false, winner: null };
+    if (ev && ev.betType === 'overUnder') unresolveData.actualValue = null;
+    await db.collection('events').doc(eventId).update(unresolveData);
 
     showToast(isSpicy ? 'Stava razveljavljena! ↩️' : 'Stava razveljavljena, kovanci vrnjeni! ↩️');
     loadAdminEvents();
