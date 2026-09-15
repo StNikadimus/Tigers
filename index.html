@@ -1267,16 +1267,19 @@
     <div class="bet-form">
       <h3>POSTAVI STAVO</h3>
       <div id="overUnderInfo" class="hidden" style="text-align:center;margin-bottom:14px;">
-        <div style="font-size:13px;color:var(--muted);">ČRTA</div>
+        <div style="font-size:13px;color:var(--muted);">PRIMERJALNA ŠTEVILKA</div>
         <div style="font-size:26px;font-weight:800;color:var(--orange);" id="overUnderLineDisplay">—</div>
-        <button class="btn-sm" style="margin-top:10px;" onclick="toggleExactGuessSlider()" id="exactGuessToggleBtn">🎯 Poskusi uganiti TOČNO število (2x izplačilo!)</button>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Najprej spodaj izberi VEČ ali MANJ.</div>
+        <button class="btn-sm" style="margin-top:10px;" onclick="toggleExactGuessSlider()" id="exactGuessToggleBtn">🎯 Dodaj tudi natančno uganitev (2x bonus, če zadeneš!)</button>
         <div id="exactGuessSliderWrap" class="hidden" style="margin-top:14px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">To je DODATNA uganitev za bonus — VEČ/MANJ še vedno izbereš spodaj posebej.</div>
           <input type="range" id="exactGuessSlider" style="width:100%;" oninput="updateExactGuessDisplay()">
           <div style="font-size:24px;font-weight:800;color:var(--orange);margin-top:6px;" id="exactGuessDisplay">—</div>
-          <button class="btn-confirm" style="margin-top:10px;" onclick="useExactGuess()">UPORABI TO ŠTEVILKO</button>
+          <button class="btn-confirm" style="margin-top:10px;" onclick="useExactGuess()">DODAJ TO NATANČNO UGANITEV</button>
         </div>
       </div>
       <div class="options-group" id="optionsGroup"></div>
+      <div id="exactGuessConfirmedNote" class="hidden" style="text-align:center;color:var(--orange);font-size:13px;margin-top:-8px;margin-bottom:10px;">🎯 Natančna uganitev dodana: <span id="exactGuessConfirmedValue">—</span></div>
       <div class="bet-amount-wrap">
         <div>
           <div class="field-label" id="betAmountLabel">KOLIČINA KOVANCEV</div>
@@ -1406,7 +1409,7 @@
         <div id="overUnderWrap" class="hidden">
           <div class="form-grid">
             <div class="form-row">
-              <label>ENOTA</label>
+              <label>ENOTA MERE (npr. "golov", "minut")</label>
               <input type="text" id="newBetUnit" placeholder="Npr: golov, minut, kartonov">
             </div>
             <div class="form-row">
@@ -1414,25 +1417,37 @@
               <input type="datetime-local" id="newEndsAt2">
             </div>
           </div>
-          <div class="form-grid">
-            <div class="form-row">
-              <label>MIN (slajder)</label>
-              <input type="number" id="newBetSliderMin" value="0" oninput="syncBetLineSlider()">
-            </div>
-            <div class="form-row">
-              <label>MAX (slajder)</label>
-              <input type="number" id="newBetSliderMax" value="10" oninput="syncBetLineSlider()">
-            </div>
-            <div class="form-row">
-              <label>KORAK</label>
-              <input type="number" id="newBetSliderStep" value="0.5" step="0.5" oninput="syncBetLineSlider()">
+
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin:14px 0;">
+            <div class="field-label" style="margin-bottom:10px;">🎯 PRIMERJALNA ŠTEVILKA (za VEČ/MANJ)</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">To je številka, glede na katero igralci stavijo VEČ ali MANJ. Napiši jo lahko že v vprašanje (npr. "Več ali manj kot 50 ujetih žog?"), tukaj pa jo nastaviš formalno — potrebna je za pravilno razrešitev.</div>
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;font-size:14px;">
+              <input type="checkbox" id="newBetLineLater" style="width:18px;height:18px;cursor:pointer;" onchange="toggleBetLineLater()">
+              Primerjalno številko določim KASNEJE, šele ob razreševanju stave
+            </label>
+            <div id="betLineNowWrap">
+              <input type="range" id="newBetLineSlider" min="0" max="10" step="0.5" value="2.5" style="width:100%;" oninput="document.getElementById('newBetLineDisplay').textContent = this.value">
+              <div style="text-align:center;font-size:28px;font-weight:800;color:var(--orange);margin-top:8px;" id="newBetLineDisplay">2.5</div>
             </div>
           </div>
-          <div class="form-row">
-            <label>ČRTA (LINE)</label>
-            <input type="range" id="newBetLineSlider" min="0" max="10" step="0.5" value="2.5" style="width:100%;" oninput="document.getElementById('newBetLineDisplay').textContent = this.value">
-            <div style="text-align:center;font-size:28px;font-weight:800;color:var(--orange);margin-top:8px;" id="newBetLineDisplay">2.5</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;">Igralci bodo stavili VEČ ali MANJ od te številke.</div>
+
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
+            <div class="field-label" style="margin-bottom:10px;">🎚️ RAZPON SLAJDERJA ZA NATANČNO UGANITEV</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Igralci lahko poleg VEČ/MANJ tudi poskusijo uganiti TOČNO številko (2x bonus, če zadenejo) — tukaj nastaviš razpon tega drsnika.</div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label>NAJMANJŠA MOŽNA VREDNOST</label>
+                <input type="number" id="newBetSliderMin" value="0" oninput="syncBetLineSlider()">
+              </div>
+              <div class="form-row">
+                <label>NAJVEČJA MOŽNA VREDNOST</label>
+                <input type="number" id="newBetSliderMax" value="10" oninput="syncBetLineSlider()">
+              </div>
+              <div class="form-row">
+                <label>KORAK (natančnost drsnika)</label>
+                <input type="number" id="newBetSliderStep" value="0.5" step="0.5" oninput="syncBetLineSlider()">
+              </div>
+            </div>
           </div>
         </div>
         <div class="form-row">
@@ -2085,7 +2100,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.31';
+var APP_VERSION = '2026-09-08.32';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -3069,6 +3084,7 @@ async function openEvent(id) {
   currentEventId = id;
   selectedOption = null;
   currentExactGuess = null;
+  document.getElementById('exactGuessConfirmedNote').classList.add('hidden');
   const ev = allEvents.find(e => e.id === id);
   if (!ev) return;
 
@@ -3082,15 +3098,18 @@ async function openEvent(id) {
     `<button class="opt-btn" onclick="selectOption('${o}')">${o}</button>`
   ).join('');
 
-  // 📊 Več/Manj tip stave: prikaži črto in omogoči slajder za natančno uganitev.
+  // 📊 Več/Manj tip stave: prikaži primerjalno številko (ali opozorilo, da
+  // bo določena kasneje) in omogoči slajder za natančno uganitev.
   const isOverUnder = ev.betType === 'overUnder';
   document.getElementById('overUnderInfo').classList.toggle('hidden', !isOverUnder);
   document.getElementById('exactGuessSliderWrap').classList.add('hidden');
   if (isOverUnder) {
-    document.getElementById('overUnderLineDisplay').textContent = ev.line + ' ' + (ev.unit || '');
+    document.getElementById('overUnderLineDisplay').textContent = (ev.line !== null && ev.line !== undefined)
+      ? (ev.line + ' ' + (ev.unit || ''))
+      : '⏳ Določeno bo ob razrešitvi';
     const slider = document.getElementById('exactGuessSlider');
     slider.min = ev.sliderMin; slider.max = ev.sliderMax; slider.step = ev.sliderStep || 0.5;
-    slider.value = ev.line;
+    slider.value = (ev.line !== null && ev.line !== undefined) ? ev.line : ev.sliderMin;
     updateExactGuessDisplay();
   }
 
@@ -3204,7 +3223,8 @@ var currentExactGuess = null;
 
 function selectOption(opt) {
   selectedOption = opt;
-  currentExactGuess = null; // ročna izbira prekliče morebitno prej nastavljeno natančno uganitev
+  // Natančna uganitev (currentExactGuess) je zdaj NEODVISNA od VEČ/MANJ
+  // izbire — ne počistimo je tukaj, ker gre za dodaten podatek za bonus.
   document.querySelectorAll('.opt-btn').forEach(b => {
     b.classList.toggle('selected', b.textContent === opt);
   });
@@ -3223,10 +3243,10 @@ function useExactGuess() {
   var ev = allEvents.find(function(e) { return e.id === currentEventId; });
   if (!ev) return;
   var guess = parseFloat(document.getElementById('exactGuessSlider').value);
-  var pick = guess > ev.line ? 'VEČ' : 'MANJ';
-  selectOption(pick); // to počisti currentExactGuess na null
-  currentExactGuess = guess; // nastavimo TAKOJ po klicu selectOption
-  showToast('Natančna uganitev nastavljena: ' + guess + ' ' + ev.unit + ' (' + pick + ')');
+  currentExactGuess = guess; // samo DODATEN podatek za bonus — NE vpliva na VEČ/MANJ izbiro
+  document.getElementById('exactGuessConfirmedValue').textContent = guess + ' ' + (ev.unit || '');
+  document.getElementById('exactGuessConfirmedNote').classList.remove('hidden');
+  showToast('Natančna uganitev dodana: ' + guess + ' ' + (ev.unit || '') + ' — zdaj še izberi VEČ ali MANJ spodaj.');
 }
 
 function setAmount(n) {
@@ -5190,7 +5210,9 @@ async function loadAdminEvents() {
     const opts = [e.opt1, e.opt2, e.opt3].filter(Boolean);
     const resolveOpts = opts.map(o => `<option value="${o}">${o}</option>`).join('');
     const unit = e.spicyMode ? '€' : 'kovancev';
-    const optsLabel = isOverUnder ? `Črta: ${e.line} ${e.unit || ''} (VEČ/MANJ)` : `Opcije: ${opts.join(' / ')}`;
+    const optsLabel = isOverUnder
+      ? ((e.line !== null && e.line !== undefined) ? `Črta: ${e.line} ${e.unit || ''} (VEČ/MANJ)` : `Črta: ⏳ še ni določena (VEČ/MANJ)`)
+      : `Opcije: ${opts.join(' / ')}`;
     return `
     <div class="admin-event-item">
       <div>
@@ -5201,6 +5223,7 @@ async function loadAdminEvents() {
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">
         ${!e.resolved ? (isOverUnder ? `
+          ${(e.line === null || e.line === undefined) ? `<input type="number" class="input-field" id="line_${e.id}" placeholder="Primerjalna številka" step="${e.sliderStep||0.5}" style="width:160px;margin-bottom:0;">` : ''}
           <input type="number" class="input-field" id="actual_${e.id}" placeholder="Dejanska vrednost" step="${e.sliderStep||0.5}" style="width:160px;margin-bottom:0;">
           <button class="btn-resolve" onclick="resolveEvent('${e.id}')">RAZREŠI</button>
           <button class="btn-extend" onclick="extendEvent('${e.id}')">+24h ⏱</button>
@@ -5254,6 +5277,11 @@ function toggleBetTypeUI() {
   var isOverUnder = document.getElementById('newBetType').value === 'overUnder';
   document.getElementById('choiceOptionsWrap').classList.toggle('hidden', isOverUnder);
   document.getElementById('overUnderWrap').classList.toggle('hidden', !isOverUnder);
+}
+
+function toggleBetLineLater() {
+  var later = document.getElementById('newBetLineLater').checked;
+  document.getElementById('betLineNowWrap').classList.toggle('hidden', later);
 }
 
 function syncBetLineSlider() {
@@ -5332,14 +5360,15 @@ async function ustvariStavo() {
 
   if (betType === 'overUnder') {
     const unit = document.getElementById('newBetUnit').value.trim();
-    const line = parseFloat(document.getElementById('newBetLineSlider').value);
+    const lineLater = document.getElementById('newBetLineLater').checked;
+    const line = lineLater ? null : parseFloat(document.getElementById('newBetLineSlider').value);
     const sliderMin = parseFloat(document.getElementById('newBetSliderMin').value);
     const sliderMax = parseFloat(document.getElementById('newBetSliderMax').value);
     const sliderStep = parseFloat(document.getElementById('newBetSliderStep').value) || 0.5;
     const endsAtStr = document.getElementById('newEndsAt2').value;
 
     if (!unit) { showToast('Vpiši enoto (npr. "golov")!', true); return; }
-    if (isNaN(line)) { showToast('Nastavi črto s slajderjem!', true); return; }
+    if (!lineLater && isNaN(line)) { showToast('Nastavi primerjalno številko ali obkljukaj "določim kasneje"!', true); return; }
     if (!endsAtStr) { showToast('Izberi datum in uro konca stave!', true); return; }
     const endsAt = new Date(endsAtStr);
     if (isNaN(endsAt.getTime()) || endsAt.getTime() <= Date.now()) { showToast('Datum konca mora biti v prihodnosti!', true); return; }
@@ -5400,6 +5429,8 @@ async function ustvariStavo() {
   document.getElementById('newEndsAt').value = defaultEndsAtLocal();
   document.getElementById('newEndsAt2').value = defaultEndsAtLocal();
   document.getElementById('newBetUnit').value = '';
+  document.getElementById('newBetLineLater').checked = false;
+  document.getElementById('betLineNowWrap').classList.remove('hidden');
   newEventExcluded = [];
   renderExcludedChips();
   showToast('Stava ustvarjena!' + (isSpicy ? ' 🌶️' : ' ✅'));
@@ -5413,20 +5444,29 @@ async function resolveEvent(eventId) {
   const isSpicy = !!ev.spicyMode;
   const isOverUnder = ev.betType === 'overUnder';
 
-  let winner, actualValue = null;
+  let winner, actualValue = null, resolvedLine = null;
 
   if (isOverUnder) {
+    const lineWasUnset = ev.line === null || ev.line === undefined;
+    if (lineWasUnset) {
+      const lineEl = document.getElementById(`line_${eventId}`);
+      resolvedLine = lineEl ? parseFloat(lineEl.value) : NaN;
+      if (isNaN(resolvedLine)) { showToast('Vpiši primerjalno številko!', true); return; }
+    } else {
+      resolvedLine = ev.line;
+    }
+
     const actualEl = document.getElementById(`actual_${eventId}`);
     actualValue = actualEl ? parseFloat(actualEl.value) : NaN;
     if (isNaN(actualValue)) { showToast('Vpiši dejansko vrednost!', true); return; }
-    winner = actualValue > ev.line ? 'VEČ' : (actualValue < ev.line ? 'MANJ' : 'PUSH');
+    winner = actualValue > resolvedLine ? 'VEČ' : (actualValue < resolvedLine ? 'MANJ' : 'PUSH');
   } else {
     const selEl = document.getElementById(`sel_${eventId}`);
     winner = selEl ? selEl.value : null;
     if (!winner) return;
   }
 
-  if (!confirm(`Razreši stavo "${ev.question}" ${isOverUnder ? `(dejanska vrednost: ${actualValue} ${ev.unit||''})` : `z zmagovalcem "${winner}"`}? Tega ni enostavno razveljaviti.`)) return;
+  if (!confirm(`Razreši stavo "${ev.question}" ${isOverUnder ? `(črta: ${resolvedLine} ${ev.unit||''}, dejanska vrednost: ${actualValue} ${ev.unit||''})` : `z zmagovalcem "${winner}"`}? Tega ni enostavno razveljaviti.`)) return;
 
   const btn = document.querySelector(`button[onclick="resolveEvent('${eventId}')"]`);
   if (btn) { btn.disabled = true; btn.textContent = 'RAZREŠUJEM...'; }
@@ -5435,7 +5475,7 @@ async function resolveEvent(eventId) {
 
   try {
     const updateData = { resolved: true, winner };
-    if (isOverUnder) updateData.actualValue = actualValue;
+    if (isOverUnder) { updateData.actualValue = actualValue; updateData.line = resolvedLine; }
     await db.collection('events').doc(eventId).update(updateData);
 
     const betsSnap = await db.collection('bets').where('eventId', '==', eventId).where('result', '==', 'pending').get();
