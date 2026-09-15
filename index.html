@@ -2030,7 +2030,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.27';
+var APP_VERSION = '2026-09-08.28';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -2746,6 +2746,7 @@ async function initHome() {
   updateNavCoins();
   initNotifications();
   maybeShowNotifPrompt();
+  maybeAutoResolveFantasyMatchups();
 
   const switchBtn = document.getElementById('switchGroupBtn');
   if (switchBtn) switchBtn.classList.toggle('hidden', currentUser.role !== 'superadmin');
@@ -4359,6 +4360,83 @@ function fantasyToday() {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
+// ===== ZANESLJIVA URA (ne zaupa surovi lokalni uri brskalnika) =====
+// Prednostni vir: "utrip" časa, ki ga tvoj domači strežnik piše v Firestore
+// vsako minuto prek cron/push-time.js (glej fantasy-cron/README.md) — ker
+// ta uporablja Firestore serverTimestamp(), je to vedno pravi Googlov čas,
+// ne glede na uro tvojega strežnika. Če je ta "utrip" star več kot 5 minut
+// (strežnik ugasnjen, izgubljen internet, ipd.), se app tiho preklopi na
+// rezervni mehanizem: enkrat izračuna razliko med lokalno uro in Firestore
+// časom (zapiši+preberi trik), in to razliko uporablja do konca seje.
+var fantasyTimeOffsetMs = null;
+
+async function getReliableTime() {
+  try {
+    var snap = await db.collection('config').doc('serverTime').get();
+    if (snap.exists && snap.data().timestamp) {
+      var ts = snap.data().timestamp.toDate();
+      var ageMs = Date.now() - ts.getTime();
+      // Dovolimo malo "v prihodnosti" (do 1 min) zaradi morebitne napake
+      // lokalne ure pri tem grobem preverjanju svežine, a ne starejše od 5 min.
+      if (ageMs > -60000 && ageMs < 5 * 60 * 1000) {
+        return ts; // natančno na ~1 minuto, ker se piše vsako minuto
+      }
+    }
+  } catch(e) {
+    console.warn('getReliableTime: strežnikov utrip ni na voljo, uporabljam rezervo:', e.message);
+  }
+  return await getTimeViaOffsetFallback();
+}
+
+async function getTimeViaOffsetFallback() {
+  if (fantasyTimeOffsetMs !== null) {
+    return new Date(Date.now() + fantasyTimeOffsetMs);
+  }
+  if (!currentUser) return new Date(); // pred prijavo nimamo dostopa do timeSync/{uid}
+  try {
+    var localBefore = Date.now();
+    var ref = db.collection('timeSync').doc(currentUser.id);
+    await ref.set({ t: firebase.firestore.FieldValue.serverTimestamp() });
+    var snap = await ref.get();
+    var serverTimeMs = snap.data().t.toDate().getTime();
+    var localAfter = Date.now();
+    var localMid = (localBefore + localAfter) / 2; // groba ocena trenutka zapisa
+    fantasyTimeOffsetMs = serverTimeMs - localMid;
+    ref.delete().catch(function() {}); // počisti za sabo, ni nujno da uspe
+    return new Date(Date.now() + fantasyTimeOffsetMs);
+  } catch(e) {
+    console.warn('getTimeViaOffsetFallback ni uspel, uporabljam surovo lokalno uro:', e.message);
+    return new Date();
+  }
+}
+
+// Stave se zaprejo 15 min pred razrešitvijo (20:45), tekme se razrešijo ob 21:00.
+async function isFantasyBettingOpen() {
+  var now = await getReliableTime();
+  var cutoff = new Date(now);
+  cutoff.setHours(20, 45, 0, 0);
+  return now < cutoff;
+}
+
+// Samodejno razreševanje ob 21h — to je REZERVNI mehanizem. Glavni,
+// zanesljiv sprožilec je resolve.js na tvojem domačem strežniku (cron ob
+// 21:00, glej fantasy-cron/README.md), ki teče NEODVISNO od tega, ali ima
+// kdorkoli app odprto. Ta klientska različica deluje samo, če je prijavljen
+// uporabnik SUPERADMIN (edini, ki po Firestore pravilih sme pisati
+// fantasyMatchups/fantasyBets) — za navadne igralce se tiho ne zgodi nič.
+async function maybeAutoResolveFantasyMatchups() {
+  var now = await getReliableTime();
+  if (now.getHours() < 21) return;
+  try {
+    var today = fantasyToday();
+    var pendingSnap = await db.collection('fantasyMatchups').where('date', '==', today).where('resolved', '==', false).limit(1).get();
+    if (pendingSnap.empty) return;
+    await resolveFantasyMatchups();
+  } catch(e) {
+    console.warn('Samodejno razreševanje fantasy tekem ni uspelo:', e.message);
+  }
+}
+
 async function generateDailyFantasyMatchups() {
   var today = fantasyToday();
   try {
@@ -4609,14 +4687,16 @@ async function loadFantasyBettableMatchups() {
 
     var myBetsSnap = await db.collection('fantasyBets').where('userId', '==', currentUser.id).get();
     var myBetMatchupIds = myBetsSnap.docs.map(function(d) { return d.data().matchupId; });
+    var bettingOpen = await isFantasyBettingOpen();
 
     listEl.innerHTML = matchups.map(function(m) {
       var isParticipant = m.team1UserId === currentUser.id || m.team2UserId === currentUser.id;
       var alreadyBet = myBetMatchupIds.indexOf(m.id) !== -1;
-      var canBet = !isParticipant && !alreadyBet && !m.resolved;
+      var canBet = !isParticipant && !alreadyBet && !m.resolved && bettingOpen;
       var statusLabel = m.resolved ? '✓ Razrešeno (' + m.team1Points + ' – ' + m.team2Points + ')'
         : isParticipant ? 'To je tvoja tekma'
         : alreadyBet ? 'Že si stavil'
+        : !bettingOpen ? '🔒 Stave zaprte (po 20:45, razrešitev ob 21:00)'
         : 'Klikni za stavo';
       var t1n = m.team1Name.replace(/'/g, "\\'");
       var t2n = m.team2Name.replace(/'/g, "\\'");
@@ -4657,6 +4737,7 @@ function selectFantasyBetPick(pick) {
 async function submitFantasyBet() {
   var errEl = document.getElementById('fantasyBetError');
   errEl.textContent = '';
+  if (!(await isFantasyBettingOpen())) { errEl.textContent = 'Stave so zaprte (po 20:45) — tekme se razrešijo ob 21:00.'; return; }
   if (!fantasyBetPick) { errEl.textContent = 'Izberi ekipo!'; return; }
   var amount = parseInt(document.getElementById('fantasyBetAmount').value);
   if (!amount || amount < 1) { errEl.textContent = 'Vpiši veljaven znesek!'; return; }
@@ -6722,6 +6803,11 @@ window.addEventListener('focus', function() {
   checkForUpdate();
 });
 setInterval(checkForUpdate, 5 * 60 * 1000);
+// Periodično preverjanje, ali je čas za samodejno razreševanje fantasy
+// tekem (po 21h) — deluje samo, če je nekdo trenutno prijavljen v app.
+setInterval(function() {
+  if (currentUser) maybeAutoResolveFantasyMatchups();
+}, 5 * 60 * 1000);
 
 </script>
 
