@@ -1713,6 +1713,12 @@
 
         <!-- EKIPE & TEKME -->
         <div id="fantasySubTeams" class="hidden">
+          <div style="background:var(--card2);border:1px solid var(--orange);border-radius:10px;padding:16px;margin-bottom:20px;">
+            <div class="field-label" style="margin-bottom:8px;">🕐 PREVERI ZANESLJIVO URO</div>
+            <div id="fantasyTimeCheckDisplay" style="font-family:'Courier New',monospace;font-size:14px;line-height:1.9;margin-bottom:10px;">Nalaganje...</div>
+            <button class="btn-sm" onclick="refreshFantasyTimeCheck()">🔄 OSVEŽI</button>
+          </div>
+
           <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
             <div class="field-label" style="margin-bottom:12px;">⚙️ NASTAVITVE LIGE</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:14px;">
@@ -2030,7 +2036,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.28';
+var APP_VERSION = '2026-09-08.29';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -3943,6 +3949,37 @@ function switchFantasySubtab(name) {
   if (name === 'teams') {
     loadFantasyAdminTodayMatchups();
     loadFantasyAdminTeamsList();
+    refreshFantasyTimeCheck();
+  }
+}
+
+async function refreshFantasyTimeCheck() {
+  var el = document.getElementById('fantasyTimeCheckDisplay');
+  if (!el) return;
+  el.textContent = 'Preverjam...';
+  try {
+    var reliableTime = await getReliableTime();
+    var localTime = new Date();
+    var diffSec = Math.round((reliableTime.getTime() - localTime.getTime()) / 1000);
+
+    var heartbeatLine = '💓 Ni najdenega utripa strežnika (push-time.js še ni nikoli tekel).';
+    try {
+      var snap = await db.collection('config').doc('serverTime').get();
+      if (snap.exists && snap.data().timestamp) {
+        var hbTime = snap.data().timestamp.toDate();
+        var hbAgeSec = Math.round((Date.now() - hbTime.getTime()) / 1000);
+        heartbeatLine = '💓 Zadnji utrip strežnika: <b>' + hbTime.toLocaleTimeString('sl-SI') + '</b> (star ' + hbAgeSec + 's) — ' +
+          (hbAgeSec < 300 ? '<span style="color:#4caf50;">✅ SVEŽ, uporablja se</span>' : '<span style="color:#ff9800;">⚠️ ZASTAREL (&gt;5min) — uporablja se rezerva!</span>');
+      }
+    } catch(e2) { /* ni kritično, prikaži samo glavni del */ }
+
+    el.innerHTML =
+      '🖥️ Lokalna ura brskalnika: <b>' + localTime.toLocaleTimeString('sl-SI') + '</b><br>' +
+      '✅ Zanesljiva ura (getReliableTime): <b style="color:var(--orange);">' + reliableTime.toLocaleTimeString('sl-SI') + '</b><br>' +
+      '📊 Razlika: <b>' + (diffSec >= 0 ? '+' : '') + diffSec + 's</b><br>' +
+      heartbeatLine;
+  } catch(e) {
+    el.textContent = 'Napaka pri preverjanju: ' + e.message;
   }
 }
 
