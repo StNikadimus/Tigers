@@ -3,7 +3,7 @@
 <html lang="sl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tigers Betting</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -28,6 +28,7 @@
     --muted: #888;
     --border: #2a2a2a;
   }
+  html { overflow-x: hidden; width: 100%; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
     background: var(--black);
@@ -35,7 +36,11 @@
     font-family: 'Rajdhani', sans-serif;
     font-size: 16px;
     min-height: 100vh;
+    width: 100%;
     overflow-x: hidden;
+    position: relative;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
   /* Animated bg stripes */
   body::before {
@@ -92,12 +97,14 @@
     color: #000;
     border:none; cursor:pointer;
     font-family:'Bebas Neue', sans-serif;
-    font-size:26px; letter-spacing:3px;
-    padding: 16px 60px;
-    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
-    transition: all 0.2s;
-    position:relative; overflow:hidden;
+    font-size:24px; letter-spacing:2.5px;
+    padding: 16px 52px;
+    border-radius: 980px;
+    box-shadow: 0 8px 24px rgba(255,107,0,0.28);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1);
+    position:relative; overflow:hidden; -webkit-tap-highlight-color:transparent;
   }
+  .btn-main:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(255,107,0,0.24); }
   .btn-main::after {
     content:''; position:absolute; inset:0;
     background: rgba(255,255,255,0.2);
@@ -116,11 +123,12 @@
   .hidden { display:none !important; }
   .modal {
     background: var(--card);
-    border: 1px solid var(--orange);
-    padding: 40px;
+    border: 1px solid rgba(255,107,0,0.35);
+    padding: 32px;
     max-width: 420px; width:90%;
-    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-    animation: modalIn 0.3s ease;
+    border-radius: 24px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,107,0,0.08);
+    animation: modalIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   @keyframes modalIn { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
   .modal h2 {
@@ -145,20 +153,26 @@
     background:var(--orange); color:#000;
     border:none; cursor:pointer;
     font-family:'Bebas Neue',sans-serif;
-    font-size:22px; letter-spacing:2px;
-    padding:14px; transition:0.2s;
+    font-size:20px; letter-spacing:1.5px;
+    padding:15px; border-radius:980px;
+    box-shadow: 0 6px 18px rgba(255,107,0,0.26);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1);
+    -webkit-tap-highlight-color:transparent;
   }
+  .btn-confirm:active { transform: scale(0.97); }
   .btn-confirm:hover { background:var(--orange-bright); }
   .error-msg { color:#ff4444; font-size:13px; margin-top:8px; }
 
   /* ===== NAVBAR ===== */
   .navbar {
-    background: rgba(10,10,10,0.95);
-    border-bottom: 2px solid var(--orange);
+    background: rgba(10,10,10,0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255,107,0,0.22);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35);
     padding: 0 24px;
     display:flex; align-items:center; justify-content:space-between;
     height:60px; position:sticky; top:0; z-index:50;
-    backdrop-filter:blur(10px);
   }
   .nav-logo {
     font-family:'Bebas Neue',sans-serif;
@@ -170,7 +184,8 @@
   .nav-coins {
     background:var(--card);
     border:1px solid var(--orange);
-    padding:6px 14px;
+    border-radius:980px;
+    padding:6px 16px;
     font-family:'Bebas Neue',sans-serif;
     font-size:18px; letter-spacing:1px;
     color:var(--orange);
@@ -187,7 +202,7 @@
     background:transparent; border:1px solid #333;
     color:var(--muted); cursor:pointer;
     font-family:'Rajdhani',sans-serif;
-    font-size:13px; padding:6px 12px;
+    font-size:13px; padding:7px 14px; border-radius:980px;
     transition:0.2s; letter-spacing:1px;
   }
   .btn-admin:hover { border-color:var(--orange); color:var(--orange); }
@@ -195,9 +210,11 @@
     background:transparent; border:1px solid var(--border);
     color:var(--text); cursor:pointer;
     font-family:'Rajdhani',sans-serif;
-    font-size:14px; font-weight:600;
-    padding:6px 14px; transition:0.2s;
+    font-size:14px; font-weight:600; border-radius:980px;
+    padding:7px 16px; transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    -webkit-tap-highlight-color:transparent;
   }
+  .btn-sm:active { transform: scale(0.96); }
   .btn-sm:hover { border-color:var(--orange); color:var(--orange); }
 
   /* ===== HOME ===== */
@@ -223,11 +240,13 @@
   .event-card {
     background:var(--card);
     border:1px solid var(--border);
-    border-left:3px solid var(--orange);
+    border-radius:18px;
     padding:20px;
     cursor:pointer;
-    transition:all 0.2s;
+    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
     position:relative; overflow:hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    -webkit-tap-highlight-color:transparent;
   }
   .event-card::before {
     content:''; position:absolute;
@@ -238,8 +257,9 @@
     border-color:var(--orange);
     background:var(--card2);
     transform:translateY(-2px);
-    box-shadow:0 8px 30px rgba(255,107,0,0.15);
+    box-shadow:0 12px 32px rgba(255,107,0,0.16);
   }
+  .event-card:active { transform: scale(0.98); }
   .event-q {
     font-size:17px; font-weight:700;
     line-height:1.3; margin-bottom:14px;
@@ -321,18 +341,21 @@
   }
   .options-group { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
   .opt-btn {
-    background:var(--black);
-    border:2px solid var(--border);
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:14px;
     color:var(--text); cursor:pointer;
     font-family:'Rajdhani',sans-serif;
-    font-size:15px; font-weight:700;
-    padding:10px 22px; transition:0.2s;
-    letter-spacing:0.5px;
+    font-size:16px; font-weight:700;
+    padding:12px 22px; transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    letter-spacing:0.5px; -webkit-tap-highlight-color:transparent;
   }
+  .opt-btn:active { transform: scale(0.97); }
   .opt-btn:hover { border-color:var(--orange); color:var(--orange); }
   .opt-btn.selected {
     background:var(--orange); color:#000;
     border-color:var(--orange);
+    box-shadow: 0 4px 14px rgba(255,107,0,0.32);
   }
   .bet-amount-wrap { display:flex; gap:10px; align-items:flex-end; margin-bottom:20px; }
   .bet-amount-wrap > div { flex:1; }
@@ -406,7 +429,7 @@
     border:1px solid var(--border);
     border-bottom:2px solid var(--orange);
     color:var(--text); font-family:'Rajdhani',sans-serif;
-    font-size:15px; padding:10px 14px; outline:none;
+    font-size:16px; padding:10px 14px; outline:none;
     transition:border-color 0.2s;
   }
   .form-row input:focus, .form-row textarea:focus { border-color:var(--orange-bright); }
@@ -437,6 +460,7 @@
   .admin-event-item {
     background:var(--black);
     border:1px solid var(--border);
+    border-radius:16px;
     padding:16px 18px; margin-bottom:12px;
     display:flex; align-items:flex-start;
     justify-content:space-between; gap:16px;
@@ -447,7 +471,7 @@
   .resolve-select {
     background:var(--black); border:1px solid var(--orange);
     color:var(--text); font-family:'Rajdhani',sans-serif;
-    font-size:14px; padding:6px 10px; outline:none; cursor:pointer;
+    font-size:16px; padding:6px 10px; outline:none; cursor:pointer;
     margin-right:8px;
   }
   .btn-resolve {
@@ -469,9 +493,10 @@
     gap:12px; margin-bottom:20px;
   }
   .stat-box {
-    background:var(--black); border:1px solid var(--border);
-    border-left:2px solid var(--orange);
-    padding:14px 16px;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   }
   .stat-val {
     font-family:'Bebas Neue',sans-serif;
@@ -507,7 +532,7 @@
     border:1px solid var(--border);
     border-bottom:2px solid var(--orange);
     color:var(--text); font-family:'Rajdhani',sans-serif;
-    font-size:15px; padding:6px 10px; outline:none;
+    font-size:16px; padding:6px 10px; outline:none;
   }
   .btn-add-coins {
     background:rgba(0,200,100,0.15); border:1px solid rgba(0,200,100,0.5);
@@ -535,10 +560,21 @@
   .btn-set-coins:hover { background:rgba(255,107,0,0.25); }
 
   /* ===== ADMIN TABS ===== */
-  .admin-tabs { display:flex; gap:4px; margin-bottom:0; border-bottom:2px solid var(--border); flex-wrap:wrap; }
-  .admin-tab { background:transparent; border:1px solid var(--border); border-bottom:none; color:var(--muted); cursor:pointer; font-family:"Bebas Neue",sans-serif; font-size:17px; letter-spacing:2px; padding:12px 24px; transition:all 0.2s; position:relative; bottom:-2px; }
-  .admin-tab:hover { color:var(--orange); border-color:#444; }
-  .admin-tab.active { background:var(--card); color:var(--orange); border-color:var(--orange); border-bottom:2px solid var(--card); }
+  .admin-tabs {
+    display:flex; gap:8px; margin-bottom:20px; padding:2px 2px 4px;
+    overflow-x:auto; overflow-y:hidden; flex-wrap:nowrap;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .admin-tabs::-webkit-scrollbar { display:none; }
+  .admin-tab {
+    flex:0 0 auto; background:var(--card); border:1px solid var(--border); border-radius:980px;
+    color:var(--muted); cursor:pointer; font-family:"Bebas Neue",sans-serif; font-size:15px;
+    letter-spacing:1.5px; padding:11px 20px; white-space:nowrap;
+    transition:all 0.25s cubic-bezier(0.4,0,0.2,1); -webkit-tap-highlight-color:transparent;
+  }
+  .admin-tab:active { transform:scale(0.96); }
+  .admin-tab:hover { color:var(--orange); border-color:var(--orange-dim); }
+  .admin-tab.active { background:var(--orange); color:#000; border-color:var(--orange); box-shadow:0 4px 16px rgba(255,107,0,0.28); }
   .admin-tab-content { display:none; }
   .admin-tab-content.active { display:block; }
   .admin-tab-content .admin-section { border-top:none; margin-top:0; }
@@ -567,10 +603,22 @@
   .bonus-banner button:hover { background:var(--orange-bright); }
 
   /* ===== HOME TABS ===== */
-  .home-tabs { display:flex; gap:0; margin:24px 0 0; border-bottom:2px solid var(--border); flex-wrap:wrap; }
-  .home-tab { background:transparent; border:1px solid transparent; border-bottom:none; color:var(--muted); cursor:pointer; font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:2px; padding:12px 22px; transition:all .2s; position:relative; bottom:-2px; }
-  .home-tab:hover { color:var(--orange); }
-  .home-tab.active { background:var(--card); color:var(--orange); border-color:var(--orange); border-bottom:2px solid var(--card); }
+  .home-tabs {
+    display:flex; gap:8px; margin:24px 0 0; padding:2px 2px 14px;
+    border-bottom:1px solid var(--border);
+    overflow-x:auto; overflow-y:hidden; flex-wrap:nowrap;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .home-tabs::-webkit-scrollbar { display:none; }
+  .home-tab {
+    flex:0 0 auto; background:var(--card); border:1px solid var(--border); border-radius:980px;
+    color:var(--muted); cursor:pointer; font-family:'Bebas Neue',sans-serif; font-size:15px;
+    letter-spacing:1.5px; padding:11px 20px; white-space:nowrap;
+    transition:all 0.25s cubic-bezier(0.4,0,0.2,1); -webkit-tap-highlight-color:transparent;
+  }
+  .home-tab:active { transform:scale(0.96); }
+  .home-tab:hover { color:var(--orange); border-color:var(--orange-dim); }
+  .home-tab.active { background:var(--orange); color:#000; border-color:var(--orange); box-shadow:0 4px 16px rgba(255,107,0,0.28); }
   .home-tab-content { display:none; padding-top:24px; }
   .home-tab-content.active { display:block; }
 
@@ -659,7 +707,7 @@
   .comment-input {
     flex: 1; background: var(--dark); border: 1px solid var(--border);
     color: var(--text); border-radius: 8px; padding: 10px 14px;
-    font-family: 'Rajdhani', sans-serif; font-size: 14px;
+    font-family: 'Rajdhani', sans-serif; font-size: 16px;
   }
   .comment-input:focus { outline: none; border-color: var(--orange); }
   .btn-comment-send {
@@ -2103,7 +2151,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.34';
+var APP_VERSION = '2026-09-08.35';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
