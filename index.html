@@ -1032,6 +1032,9 @@
      "position:sticky" obravnava varnostno območje na posameznem telefonu. -->
 <div id="safeAreaTopCover" style="position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top, 0px);background:rgba(10,10,10,0.92);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:51;pointer-events:none;"></div>
 
+<!-- ZAČASNA DIAGNOSTIKA — odstranimo takoj, ko dobim prave številke -->
+<div id="navDebugBadge" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#ff0000;color:#fff;font-family:monospace;font-size:11px;line-height:1.5;padding:4px 8px;pointer-events:none;white-space:pre;"></div>
+
 <div id="appFooter" style="position:fixed;bottom:0;left:0;right:0;z-index:500;text-align:center;padding:4px 8px calc(4px + env(safe-area-inset-bottom, 0px));font-family:Rajdhani,sans-serif;font-size:11px;color:rgba(255,255,255,0.28);pointer-events:none;background:linear-gradient(to top, rgba(0,0,0,0.5), transparent);">
   🐯 Tigers Betting <span id="appFooterVersion"></span>
 </div>
@@ -2164,7 +2167,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.40';
+var APP_VERSION = '2026-09-08.41';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -7125,6 +7128,39 @@ function dismissAddHomeScreen(forever) {
 }
 maybeShowAddHomeScreen();
 checkForPasswordResetLink();
+
+// ZAČASNA DIAGNOSTIKA — odstranimo takoj, ko dobim prave številke od uporabnika.
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    try {
+      var testEl = document.createElement('div');
+      testEl.style.cssText = 'position:fixed;top:0;left:0;height:env(safe-area-inset-top, 0px);width:1px;visibility:hidden;';
+      document.body.appendChild(testEl);
+      var safeAreaTopPx = testEl.getBoundingClientRect().height;
+      document.body.removeChild(testEl);
+
+      var navbar = document.querySelector('.navbar');
+      var navRect = navbar ? navbar.getBoundingClientRect() : null;
+      var navStyle = navbar ? getComputedStyle(navbar) : null;
+      var cover = document.getElementById('safeAreaTopCover');
+      var coverRect = cover ? cover.getBoundingClientRect() : null;
+
+      var badge = document.getElementById('navDebugBadge');
+      if (badge) {
+        badge.textContent =
+          'standalone=' + (window.navigator.standalone === true) + ' safe-area-top=' + safeAreaTopPx.toFixed(1) + 'px\n' +
+          'cover: top=' + (coverRect ? coverRect.top.toFixed(1) : '?') + ' h=' + (coverRect ? coverRect.height.toFixed(1) : '?') + ' bottom=' + (coverRect ? coverRect.bottom.toFixed(1) : '?') + '\n' +
+          'navbar: top=' + (navRect ? navRect.top.toFixed(1) : '?') + ' h=' + (navRect ? navRect.height.toFixed(1) : '?') + ' bottom=' + (navRect ? navRect.bottom.toFixed(1) : '?') + '\n' +
+          'navbar paddingTop(css)=' + (navStyle ? navStyle.paddingTop : '?') + '\n' +
+          'innerHeight=' + window.innerHeight + ' visualViewport.h=' + (window.visualViewport ? window.visualViewport.height.toFixed(1) : 'n/a') + ' vvOffsetTop=' + (window.visualViewport ? window.visualViewport.offsetTop.toFixed(1) : 'n/a');
+      }
+    } catch(e) {
+      var badge2 = document.getElementById('navDebugBadge');
+      if (badge2) badge2.textContent = 'Napaka pri diagnostiki: ' + e.message;
+    }
+  }, 500);
+});
+
 
 // ===== ZAZNAVA NOVE VERZIJE (pomembno za iPhone Add-to-Home-Screen) =====
 // Ko je stran shranjena kot bližnjica na domačem zaslonu, jo iOS pogosto
