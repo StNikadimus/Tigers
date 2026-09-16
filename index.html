@@ -176,7 +176,7 @@
     box-shadow: 0 4px 24px rgba(0,0,0,0.35);
     padding: 0 24px;
     padding-top: env(safe-area-inset-top, 0px);
-    height: calc(68px + env(safe-area-inset-top, 0px));
+    height: calc(60px + env(safe-area-inset-top, 0px));
     display:flex; align-items:center; justify-content:space-between;
     position:sticky; top:0; z-index:50;
     overflow: visible;
@@ -446,7 +446,7 @@
 
   /* ===== NAVBAR — MOBILE ===== */
   @media(max-width:640px){
-    .navbar { padding:0 10px; padding-top:env(safe-area-inset-top, 0px); height:calc(58px + env(safe-area-inset-top, 0px)); gap:6px; overflow:visible; }
+    .navbar { padding:0 10px; padding-top:env(safe-area-inset-top, 0px); height:calc(52px + env(safe-area-inset-top, 0px)); gap:6px; overflow:visible; }
     .nav-logo { font-size:17px; letter-spacing:1px; white-space:nowrap; }
     .nav-right { gap:6px; }
     .nav-coins { padding:4px 8px; font-size:14px; }
@@ -2164,7 +2164,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.39';
+var APP_VERSION = '2026-09-08.40';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
