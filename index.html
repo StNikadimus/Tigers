@@ -1375,7 +1375,7 @@
       <div class="admin-section">
         <div class="form-row">
           <label>SKUPINA</label>
-          <select class="resolve-select" id="newEventGroup" style="width:100%;height:42px;"></select>
+          <select class="resolve-select" id="newEventGroup" style="width:100%;height:42px;" onchange="loadExcludeSuggestPlayers()"></select>
         </div>
         <div class="form-row">
           <label>VPRAŠANJE</label>
@@ -1450,13 +1450,16 @@
             </div>
           </div>
         </div>
-        <div class="form-row">
+        <div class="form-row" style="position:relative;">
           <label>IZKLJUČENI IGRALCI (ne morejo staviti na to stavo)</label>
           <div style="display:flex;gap:8px;">
-            <input type="text" id="newEventExcludeInput" placeholder="Ime ali email igralca..." style="flex:1;"
-              onkeydown="if(event.key==='Enter'){event.preventDefault(); addExcludedUser();}">
+            <input type="text" id="newEventExcludeInput" placeholder="Začni tipkati ime..." style="flex:1;" autocomplete="off"
+              oninput="onExcludeInputChange()"
+              onblur="setTimeout(function(){ document.getElementById('excludeSuggestions').classList.add('hidden'); }, 200)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault(); addExcludedUser();} if(event.key==='Escape'){document.getElementById('excludeSuggestions').classList.add('hidden');}">
             <button class="btn-sm" type="button" style="white-space:nowrap;padding:0 16px;" onclick="addExcludedUser()">+ DODAJ</button>
           </div>
+          <div id="excludeSuggestions" class="hidden" style="position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--card2);border:1px solid var(--border);border-radius:8px;margin-top:4px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.4);"></div>
           <div id="newEventExcludeChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
           <div style="font-size:12px;color:var(--muted);margin-top:6px;">Uporabno npr. za stave o igralcu samem (da ne stavi na svoj rezultat).</div>
         </div>
@@ -2100,7 +2103,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.33';
+var APP_VERSION = '2026-09-08.34';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -5298,6 +5301,57 @@ function syncBetLineSlider() {
 }
 
 var newEventExcluded = []; // {id, name} igralcev, ki ne smejo staviti na trenutno stavo v pripravi
+
+// ----- Predlogi (iskalnik) za IZKLJUČENI IGRALCI polje -----
+var excludeSuggestPlayers = [];
+var excludeSuggestGroupId = null;
+
+async function loadExcludeSuggestPlayers() {
+  var groupId = document.getElementById('newEventGroup').value;
+  if (!groupId) { excludeSuggestPlayers = []; excludeSuggestGroupId = null; return; }
+  if (groupId === excludeSuggestGroupId) return; // že naloženo za to skupino
+  try {
+    var snap = await db.collection('users').where('groupId', '==', groupId).get();
+    excludeSuggestPlayers = snap.docs
+      .map(function(d) { return { id: d.id, name: d.data().name, email: d.data().email }; })
+      .filter(function(u) { return u.name && !u._placeholder; });
+    excludeSuggestGroupId = groupId;
+  } catch(e) {
+    console.warn('Napaka pri nalaganju predlogov igralcev:', e.message);
+    excludeSuggestPlayers = [];
+  }
+}
+
+async function onExcludeInputChange() {
+  if (excludeSuggestGroupId === null) await loadExcludeSuggestPlayers(); // prvi vnos, še ni naloženo
+  var val = document.getElementById('newEventExcludeInput').value.trim().toUpperCase();
+  var box = document.getElementById('excludeSuggestions');
+  if (!val) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+  var matches = excludeSuggestPlayers.filter(function(u) {
+    return u.name.toUpperCase().indexOf(val) !== -1 && !newEventExcluded.some(function(x) { return x.id === u.id; });
+  }).slice(0, 6);
+
+  if (matches.length === 0) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+  box.innerHTML = matches.map(function(u) {
+    return '<div style="padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border);" ' +
+      'onmouseover="this.style.background=\'var(--border)\'" onmouseout="this.style.background=\'\'" ' +
+      'onclick="pickExcludeSuggestion(\'' + u.id + '\')">' + u.name + '</div>';
+  }).join('');
+  box.classList.remove('hidden');
+}
+
+function pickExcludeSuggestion(uid) {
+  var u = excludeSuggestPlayers.find(function(x) { return x.id === uid; });
+  if (!u) return;
+  if (newEventExcluded.some(function(x) { return x.id === uid; })) { showToast('Ta igralec je že na seznamu.', true); return; }
+  newEventExcluded.push({ id: u.id, name: u.name });
+  document.getElementById('newEventExcludeInput').value = '';
+  document.getElementById('excludeSuggestions').classList.add('hidden');
+  document.getElementById('excludeSuggestions').innerHTML = '';
+  renderExcludedChips();
+}
 
 async function addExcludedUser() {
   var input = document.getElementById('newEventExcludeInput').value.trim();
