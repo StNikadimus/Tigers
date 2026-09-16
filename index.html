@@ -28,7 +28,10 @@
     --muted: #888;
     --border: #2a2a2a;
   }
-  html { overflow-x: hidden; width: 100%; }
+  html {
+    overflow-x: hidden; width: 100%;
+    overscroll-behavior-y: none;
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
     background: var(--black);
@@ -38,6 +41,7 @@
     min-height: 100vh;
     width: 100%;
     overflow-x: hidden;
+    overscroll-behavior-y: none;
     position: relative;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
@@ -2151,7 +2155,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.35';
+var APP_VERSION = '2026-09-08.36';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
