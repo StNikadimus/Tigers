@@ -2164,7 +2164,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.44';
+var APP_VERSION = '2026-09-08.46';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -5634,6 +5634,13 @@ async function resolveEvent(eventId) {
     const totalPool = betDocs.reduce((s, d) => s + d.data().amount, 0);
     const winPool = betDocs.filter(d => d.data().option === winner).reduce((s, d) => s + d.data().amount, 0);
     const payoutRatio = winPool > 0 ? totalPool / winPool : 1;
+    // 🎲 Bonus 1.5x: če so VSI, ki so stavili na ta dogodek, stavili na
+    // zmagovalno stran (nihče ni stavil proti), bi payoutRatio itak znašal
+    // 1 (samo povrnjen vložek brez dobička) — namesto tega dobijo 1.5x.
+    // To vključuje tudi primer, ko je bil samo EN sam stavek na cel
+    // dogodek. Velja SAMO za non-spicy (kovanci nastanejo "iz nič" v igri;
+    // pri spicy je denar resničen in tega ne moremo storiti).
+    const noOpposingBets = totalPool > 0 && winPool === totalPool;
 
     // Za 🌶️ Spicy: managerId potrebujemo, da ga obvestimo, komu zdaj dolguje
     // izplačilo (da lahko preveri npr. na naslednjem treningu).
@@ -5655,6 +5662,7 @@ async function resolveEvent(eventId) {
         // se njegova natančna uganitev ujema z dejansko vrednostjo natanko.
         const exactBonus = isOverUnder && isWin && b.exactGuess !== null && b.exactGuess !== undefined && b.exactGuess === actualValue;
         let payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
+        if (!isSpicy && isWin && noOpposingBets) payout = Math.floor(b.amount * 1.5);
         if (exactBonus) payout = payout * 2;
 
         if (isSpicy) {
@@ -5689,7 +5697,7 @@ async function resolveEvent(eventId) {
                 totalBets: (uSnap.data().totalBets || 0) + 1
               });
             }
-            await sendNotification(b.userId, `🏆 Zmaga!${exactBonus ? ' 🎯 TOČNA UGANITEV — 2x BONUS!' : ''} Stava "${ev.question}" — izbira ${b.option} je zmagala! Prejel si +${payout} 🪙`, 'bet_resolved');
+            await sendNotification(b.userId, `🏆 Zmaga!${exactBonus ? ' 🎯 TOČNA UGANITEV — 2x BONUS!' : ''}${!isSpicy && noOpposingBets ? ' 🎲 Nihče ni stavil proti — 1.5x bonus!' : ''} Stava "${ev.question}" — izbira ${b.option} je zmagala! Prejel si +${payout} 🪙`, 'bet_resolved');
           } else {
             const uSnap = await db.collection('users').doc(b.userId).get();
             if (uSnap.exists) {
@@ -6647,6 +6655,7 @@ async function changeWinner(eventId) {
     const totalPool = freshBets.reduce((s, b) => s + b.amount, 0);
     const winPool = freshBets.filter(b => b.option === newWinner).reduce((s, b) => s + b.amount, 0);
     const payoutRatio = winPool > 0 ? totalPool / winPool : 1;
+    const noOpposingBets = totalPool > 0 && winPool === totalPool;
 
     // Za 🌶️ Spicy: managerId potrebujemo, da ga obvestimo o novih dolgovanih izplačilih.
     let groupManagerId2 = null;
@@ -6657,7 +6666,8 @@ async function changeWinner(eventId) {
 
     for (const b of freshBets) {
       const isWin = b.option === newWinner;
-      const payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
+      let payout = isWin ? Math.floor(b.amount * payoutRatio) : 0;
+      if (!isSpicy && isWin && noOpposingBets) payout = Math.floor(b.amount * 1.5);
 
       if (isSpicy) {
         await db.collection('bets').doc(b.id).update({
