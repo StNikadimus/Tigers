@@ -124,6 +124,18 @@
     z-index:100; backdrop-filter:blur(4px);
   }
   .modal-overlay.hidden { display:none; }
+  /* #notifPermModal se prikaže SAMODEJNO (ne kot odziv na klik) in ni nujen
+     korak za uporabo aplikacije — v nasprotju s pravimi modali (prijava,
+     2FA ...), kjer mora uporabnik nekaj potrditi, preden lahko nadaljuje.
+     Zato njegovo temno ozadje ne sme loviti scroll/touch dogodkov strani
+     pod njim — samo kartica ostane klikljiva. NAJDEN VZROK scroll bug-a:
+     na Chromium brskalnikih (Android Chrome, Opera GX ...), kjer
+     window.Notification obstaja, se ta modal prikaže ~1.8s po vsakem
+     nalaganju in v celoti zaustavi scroll (wheel in touch), dokler ga
+     uporabnik ne opazi in potrdi/zavrne — na iOS Safari (kjer Notification
+     API ne obstaja) se modal nikoli ne prikaže, zato tam scroll dela.  */
+  #notifPermModal { pointer-events: none; }
+  #notifPermModal .modal { pointer-events: auto; }
   .hidden { display:none !important; }
   .modal {
     background: var(--card);
@@ -2239,7 +2251,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-19.50';
+var APP_VERSION = '2026-09-19.51';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
