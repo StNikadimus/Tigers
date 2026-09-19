@@ -598,8 +598,29 @@
   .admin-tab-content { display:none; }
   .admin-tab-content.active { display:block; }
   .admin-tab-content .admin-section { border-top:none; margin-top:0; }
-  ::-webkit-scrollbar-track { background:var(--black); }
-  ::-webkit-scrollbar-thumb { background:var(--orange-dim); }
+  /* NAJDEN VZROK scroll bug-a: ti dve pravili sta bili prej BREZ selektorja
+     (samo "::-webkit-scrollbar-track {...}"), kar v CSS pomeni "*::-webkit-
+     scrollbar-track" — torej se je uporabilo na VSAKEM scrollable elementu
+     na strani, VKLJUČNO z glavno stranjo (html/body). Brž ko Chromium zazna
+     KAKRŠENKOLI ::-webkit-scrollbar-* na elementu, preklopi ta scrollbar iz
+     modernega "overlay" načina (brez puščic, tanek, avtomatsko izgine) v
+     "classic" način (viden, s puščicami gor/dol) — kar natanko ustreza
+     opisu bug-a (vidne puščice, ki ne delajo). V Opera GX (in nekaterih
+     Android Chrome različicah) ta "classic" način zaradi lastnega
+     brskalnikovega scrollbar sistema pokvari posredovanje wheel/klik-na-
+     puščico dogodkov nazaj v scroll strani (samo direktno vlečenje ročice
+     še vedno dela, ker gre mimo tega). Popravek: isto oranžno obarvanje
+     ohranimo SAMO na majhnih notranjih seznamih (kjer to ni bilo sporno),
+     glavne strani/body pa se sploh ne dotikamo, da ostane privzeti
+     (delujoč) brskalnikov scrollbar. */
+  .notif-panel::-webkit-scrollbar-track,
+  .comments-list::-webkit-scrollbar-track,
+  #fantasyPlayerPicker::-webkit-scrollbar-track,
+  #switchGroupList::-webkit-scrollbar-track { background:var(--black); }
+  .notif-panel::-webkit-scrollbar-thumb,
+  .comments-list::-webkit-scrollbar-thumb,
+  #fantasyPlayerPicker::-webkit-scrollbar-thumb,
+  #switchGroupList::-webkit-scrollbar-thumb { background:var(--orange-dim); }
 
   /* Admin modal */
   #notAdminModal .modal, #notLoggedInModal .modal { border-color: #444; }
@@ -2251,7 +2272,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-19.51';
+var APP_VERSION = '2026-09-19.52';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
