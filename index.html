@@ -30,7 +30,16 @@
   }
   html {
     overflow-x: hidden; width: 100%;
-    overscroll-behavior-y: none;
+    /* NAJDEN VZROK #2 scroll bug-a: "none" na root elementu je v določenih
+       Chromium različicah (Opera GX, Chrome, Android Chrome) hroščevo in
+       lahko POPOLNOMA ustavi scroll prek miškinega kolesca/scrollbar
+       puščic (gre skozi "gesture scroll chain" logiko brskalnika), medtem
+       ko programski scrollBy()/scrollTop in vlečenje scrollbar drsnika to
+       logiko obideta in zato delujeta normalno. "contain" da isti
+       uporabniški učinek (brez pull-to-refresh/chaininga na brskalnik),
+       brez tega hrošča. iOS Safari (WebKit) ni prizadet, ker overscroll-
+       behavior tam obravnava drugače. */
+    overscroll-behavior-y: contain;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -41,7 +50,7 @@
     min-height: 100vh;
     width: 100%;
     overflow-x: hidden;
-    overscroll-behavior-y: none;
+    overscroll-behavior-y: contain;
     position: relative;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
@@ -2272,7 +2281,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-19.52';
+var APP_VERSION = '2026-09-19.53';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
