@@ -1157,6 +1157,9 @@
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
           <input type="checkbox" id="notifSetting_bet_resolved" onchange="setNotifSetting('bet_resolved', this.checked)"> 🏆 Razrešene stave
         </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="notifSetting_challenge" onchange="setNotifSetting('challenge', this.checked)"> ⚔️ 1v1 izzivi
+        </label>
       </div>
     </div>
   </div>
@@ -1171,6 +1174,7 @@
     <!-- Zavihki -->
     <div class="home-tabs">
       <button class="home-tab active" onclick="switchHomeTab('htab-stave')">🎯 STAVE</button>
+      <button class="home-tab" onclick="switchHomeTab('htab-izzivi')" id="izziviTabBtn">⚔️ IZZIVI</button>
       <button class="home-tab" onclick="switchHomeTab('htab-fantasy')">🏈 FANTASY</button>
       <button class="home-tab" onclick="switchHomeTab('htab-lestvica')">🏆 LESTVICA</button>
       <button class="home-tab" onclick="switchHomeTab('htab-arhiv')">📦 ARHIV</button>
@@ -1188,6 +1192,28 @@
       <div class="section-sub">Zadnjih 5 stavkov</div>
       <div id="myBetsWrap">
         <div style="color:var(--muted);font-size:14px;">Še nimaš stavkov.</div>
+      </div>
+    </div>
+
+    <!-- Tab: 1v1 Izzivi -->
+    <div class="home-tab-content" id="htab-izzivi">
+      <div class="section-title">⚔️ 1v1 IZZIVI</div>
+      <div class="section-sub">Izzovi soigralca na karkoli — kdo da več golov na treningu, kdo hitreje teče, karkoli se dogovorita. Manager potrdi zmagovalca.</div>
+      <button class="btn-main" style="margin:14px 0 22px;" onclick="showNewChallengeModal()">+ NOV IZZIV</button>
+
+      <div class="field-label" style="margin-bottom:10px;">📥 PREJETI IZZIVI</div>
+      <div id="challengesReceivedList" style="margin-bottom:24px;">
+        <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+      </div>
+
+      <div class="field-label" style="margin-bottom:10px;">📤 MOJI POSLANI IZZIVI</div>
+      <div id="challengesSentList" style="margin-bottom:24px;">
+        <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+      </div>
+
+      <div class="field-label" style="margin-bottom:10px;">📜 ZGODOVINA</div>
+      <div id="challengesHistoryList">
+        <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
       </div>
     </div>
 
@@ -1434,6 +1460,7 @@
       <button class="admin-tab" id="tab-revenue-btn" style="display:none;" onclick="switchTab('tab-revenue')">📊 REVENUE</button>
       <button class="admin-tab" id="tab-fantasy-btn" style="display:none;" onclick="switchTab('tab-fantasy')">🏈 FANTASY</button>
       <button class="admin-tab" id="tab-admini-btn" style="display:none;" onclick="switchTab('tab-admini')">🔐 ADMINI</button>
+      <button class="admin-tab" id="tab-izzivi-btn" style="display:none;" onclick="switchTab('tab-izzivi')">⚔️ IZZIVI</button>
     </div>
 
     <!-- Tab: Nova stava -->
@@ -1975,6 +2002,17 @@
       </div>
     </div>
 
+    <!-- Tab: 1v1 Izzivi (potrditev zmagovalca) -->
+    <div class="admin-tab-content" id="tab-izzivi">
+      <div class="admin-section">
+        <div class="section-title" style="font-size:22px;margin-bottom:6px;">⚔️ 1v1 IZZIVI</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Sprejeti izzivi čakajo na tvojo potrditev, kdo je zmagal. Denar (vložek obeh) se izplača zmagovalcu.</div>
+        <div id="adminChallengesList">
+          <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -2007,6 +2045,35 @@
       <div style="color:var(--muted);font-size:14px;">Nalaganje...</div>
     </div>
     <button class="btn-sm" style="width:100%;text-align:center;" onclick="document.getElementById('switchGroupModal').classList.add('hidden')">PREKLIČI</button>
+  </div>
+</div>
+
+<!-- 1v1 Izziv: nov izziv -->
+<div id="newChallengeModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:420px;">
+    <h2>⚔️ NOV IZZIV</h2>
+    <div class="form-row" style="position:relative;">
+      <label>KOGA IZZIVAŠ?</label>
+      <input type="text" id="challengeOpponentInput" placeholder="Začni tipkati ime..." autocomplete="off"
+        oninput="onChallengeOpponentInputChange()"
+        onblur="setTimeout(function(){ document.getElementById('challengeOpponentSuggestions').classList.add('hidden'); }, 200)"
+        onkeydown="if(event.key==='Escape'){document.getElementById('challengeOpponentSuggestions').classList.add('hidden');}">
+      <div id="challengeOpponentSuggestions" class="hidden" style="position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--card2);border:1px solid var(--border);border-radius:8px;margin-top:4px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.4);"></div>
+      <div id="challengeOpponentChip" class="hidden" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--orange);border-radius:20px;padding:6px 12px;font-size:13px;">
+        <span id="challengeOpponentChipName">—</span>
+        <span style="cursor:pointer;color:var(--muted);" onclick="clearChallengeOpponent()">✕</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>ZA KAJ STA SE STAVILA?</label>
+      <textarea id="challengeDescription" rows="2" placeholder="npr. Kdo da več golov na današnjem treningu" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+    </div>
+    <div class="form-row">
+      <label>VLOŽEK (vsak od vaju vloži toliko) 🪙</label>
+      <input type="number" id="challengeAmount" placeholder="npr. 50" min="1">
+    </div>
+    <button class="btn-create" onclick="submitNewChallenge()">POŠLJI IZZIV</button>
+    <button class="btn-sm" style="width:100%;margin-top:10px;text-align:center;" onclick="closeNewChallengeModal()">PREKLIČI</button>
   </div>
 </div>
 
@@ -2158,6 +2225,10 @@ var allEvents = [];
 var allUsers = [];
 var unsubEvents = null;
 var unsubUser = null;
+var unsubChallengesSent = null;
+var unsubChallengesReceived = null;
+var myChallengesSent = [];
+var myChallengesReceived = [];
 var notifUnread = 0;
 var notifUnsub = null;
 var commentUnsub = null;
@@ -2169,7 +2240,7 @@ var selectedTopupPkg = null;
 // Poveča to ob VSAKEM deployu spremenjene datoteke — s tem app zazna,
 // da obstaja nova verzija (pomembno za Add-to-Home-Screen bližnjice na
 // iPhone, ki sicer ne preverjajo samodejno za posodobitve).
-var APP_VERSION = '2026-09-08.47';
+var APP_VERSION = '2026-09-19.49';
 var appFooterVersionEl = document.getElementById('appFooterVersion');
 if (appFooterVersionEl) appFooterVersionEl.textContent = 'v' + APP_VERSION;
 
@@ -2869,7 +2940,7 @@ function switchHomeTab(tabId) {
   document.querySelectorAll('.home-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.home-tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
-  const tabs = ['htab-stave', 'htab-fantasy', 'htab-lestvica', 'htab-arhiv', 'htab-shop', 'htab-profil'];
+  const tabs = ['htab-stave', 'htab-izzivi', 'htab-fantasy', 'htab-lestvica', 'htab-arhiv', 'htab-shop', 'htab-profil'];
   document.querySelectorAll('.home-tab')[tabs.indexOf(tabId)]?.classList.add('active');
 
   if (tabId === 'htab-fantasy') initFantasyHomeTab();
@@ -2877,6 +2948,7 @@ function switchHomeTab(tabId) {
   if (tabId === 'htab-arhiv') loadArchive();
   if (tabId === 'htab-shop') loadTopupPackages();
   if (tabId === 'htab-profil') loadProfileStats();
+  if (tabId === 'htab-izzivi') renderChallenges();
 }
 
 // ===== HOME =====
@@ -2910,6 +2982,24 @@ async function initHome() {
       loadMyBets();
     }
   });
+
+  if (unsubChallengesSent) unsubChallengesSent();
+  unsubChallengesSent = db.collection('challenges')
+    .where('fromUserId', '==', currentUser.id)
+    .onSnapshot(snap => {
+      myChallengesSent = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      myChallengesSent.forEach(ensureChallengePayoutApplied);
+      renderChallenges();
+    }, err => console.warn('Napaka pri nalaganju poslanih izzivov:', err.message));
+
+  if (unsubChallengesReceived) unsubChallengesReceived();
+  unsubChallengesReceived = db.collection('challenges')
+    .where('toUserId', '==', currentUser.id)
+    .onSnapshot(snap => {
+      myChallengesReceived = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      myChallengesReceived.forEach(ensureChallengePayoutApplied);
+      renderChallenges();
+    }, err => console.warn('Napaka pri nalaganju prejetih izzivov:', err.message));
 }
 
 // ===== ZAMENJAJ SKUPINO (samo superadmin) =====
@@ -3569,6 +3659,8 @@ async function enterAdmin() {
   var tabPlacilaBtn = document.getElementById('tab-placila-btn');
   var showPlacila = currentAdmin.role === 'manager' && currentAdmin.groupSpicyMode === true;
   if (tabPlacilaBtn) tabPlacilaBtn.style.display = showPlacila ? '' : 'none';
+  var tabIzziviBtn = document.getElementById('tab-izzivi-btn');
+  if (tabIzziviBtn) tabIzziviBtn.style.display = hasPerm(PERM.EVENTS) ? '' : 'none';
 
   // Hide tabs based on role
   var allTabBtns = document.querySelectorAll('.admin-tab');
@@ -3577,6 +3669,7 @@ async function enterAdmin() {
     allTabBtns[0] && (allTabBtns[0].style.display = 'none');
     allTabBtns[1] && (allTabBtns[1].style.display = 'none');
     if (tabPlacilaBtn) tabPlacilaBtn.style.display = 'none';
+    if (tabIzziviBtn) tabIzziviBtn.style.display = 'none';
   }
   if (!hasPerm(PERM.COINS)) {
     allTabBtns[3] && (allTabBtns[3].style.display = 'none');
@@ -3606,7 +3699,7 @@ function switchTab(tabId) {
   var tabEl = document.getElementById(tabId);
   if (tabEl) tabEl.classList.add('active');
   // Activate button
-  var tabIds = ['tab-nova','tab-stave','tab-placila','tab-kovanci','tab-igralci','tab-skupine','tab-revenue','tab-fantasy','tab-admini'];
+  var tabIds = ['tab-nova','tab-stave','tab-placila','tab-kovanci','tab-igralci','tab-skupine','tab-revenue','tab-fantasy','tab-admini','tab-izzivi'];
   var idx = tabIds.indexOf(tabId);
   var btns = document.querySelectorAll('.admin-tab');
   if (btns[idx]) btns[idx].classList.add('active');
@@ -3617,6 +3710,7 @@ function switchTab(tabId) {
   if (tabId === 'tab-placila') loadPlacilaTab();
   if (tabId === 'tab-revenue') loadRevenueTab();
   if (tabId === 'tab-fantasy') loadFantasyTab();
+  if (tabId === 'tab-izzivi') loadAdminChallenges();
   window.scrollTo(0, 0);
 }
 
@@ -5503,6 +5597,509 @@ function renderExcludedChips() {
   }).join('');
 }
 
+// =========================================================================
+// ⚔️ 1v1 IZZIVI — direktni izziv med dvema igralcema (izzovi → sprejmi/
+// zavrni → manager potrdi zmagovalca). Ločeno od navadnih stav/dogodkov,
+// samo za kovance (ne za 🌶️ Spicy Mode) — enostavnejši, hitrejši tok.
+// =========================================================================
+
+var challengeSuggestPlayers = [];
+var challengeSuggestGroupId = null;
+var selectedChallengeOpponent = null; // {id, name}
+
+async function loadChallengeSuggestPlayers() {
+  var groupId = currentUser.groupId;
+  if (!groupId) { challengeSuggestPlayers = []; return; }
+  if (groupId === challengeSuggestGroupId) return;
+  try {
+    var snap = await db.collection('users').where('groupId', '==', groupId).get();
+    challengeSuggestPlayers = snap.docs
+      .map(function(d) { return { id: d.id, name: d.data().name }; })
+      .filter(function(u) { return u.name && u.id !== currentUser.id; });
+    challengeSuggestGroupId = groupId;
+  } catch(e) {
+    console.warn('Napaka pri nalaganju predlogov igralcev za izziv:', e.message);
+    challengeSuggestPlayers = [];
+  }
+}
+
+async function showNewChallengeModal() {
+  await loadChallengeSuggestPlayers();
+  selectedChallengeOpponent = null;
+  document.getElementById('challengeOpponentInput').value = '';
+  document.getElementById('challengeOpponentInput').classList.remove('hidden');
+  document.getElementById('challengeOpponentChip').classList.add('hidden');
+  document.getElementById('challengeDescription').value = '';
+  document.getElementById('challengeAmount').value = '';
+  document.getElementById('challengeOpponentSuggestions').classList.add('hidden');
+  document.getElementById('newChallengeModal').classList.remove('hidden');
+}
+
+function closeNewChallengeModal() {
+  document.getElementById('newChallengeModal').classList.add('hidden');
+}
+
+function onChallengeOpponentInputChange() {
+  var val = document.getElementById('challengeOpponentInput').value.trim().toUpperCase();
+  var box = document.getElementById('challengeOpponentSuggestions');
+  if (!val) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+  var matches = challengeSuggestPlayers.filter(function(u) {
+    return u.name.toUpperCase().indexOf(val) !== -1;
+  }).slice(0, 6);
+
+  if (matches.length === 0) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+  box.innerHTML = matches.map(function(u) {
+    return '<div style="padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border);" ' +
+      'onmouseover="this.style.background=\'var(--border)\'" onmouseout="this.style.background=\'\'" ' +
+      'onclick="pickChallengeOpponent(\'' + u.id + '\')">' + u.name + '</div>';
+  }).join('');
+  box.classList.remove('hidden');
+}
+
+function pickChallengeOpponent(uid) {
+  var u = challengeSuggestPlayers.find(function(x) { return x.id === uid; });
+  if (!u) return;
+  selectedChallengeOpponent = u;
+  document.getElementById('challengeOpponentInput').value = '';
+  document.getElementById('challengeOpponentInput').classList.add('hidden');
+  document.getElementById('challengeOpponentSuggestions').classList.add('hidden');
+  document.getElementById('challengeOpponentSuggestions').innerHTML = '';
+  document.getElementById('challengeOpponentChipName').textContent = u.name;
+  document.getElementById('challengeOpponentChip').classList.remove('hidden');
+}
+
+function clearChallengeOpponent() {
+  selectedChallengeOpponent = null;
+  document.getElementById('challengeOpponentInput').classList.remove('hidden');
+  document.getElementById('challengeOpponentInput').value = '';
+  document.getElementById('challengeOpponentChip').classList.add('hidden');
+}
+
+async function submitNewChallenge() {
+  if (!selectedChallengeOpponent) { showToast('Izberi soigralca, ki ga izzivaš!', true); return; }
+  var description = document.getElementById('challengeDescription').value.trim();
+  if (!description) { showToast('Vpiši, za kaj sta se stavila!', true); return; }
+  var amount = parseInt(document.getElementById('challengeAmount').value);
+  if (!amount || amount < 1) { showToast('Vpiši veljaven vložek!', true); return; }
+  if (amount > (currentUser.coins || 0)) { showToast('Nimaš dovolj kovancev za ta vložek!', true); return; }
+
+  try {
+    await db.collection('challenges').add({
+      groupId: currentUser.groupId,
+      fromUserId: currentUser.id,
+      fromUserName: currentUser.name,
+      toUserId: selectedChallengeOpponent.id,
+      toUserName: selectedChallengeOpponent.name,
+      description: description,
+      amount: amount,
+      status: 'pending',
+      winnerId: null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      resolvedAt: null,
+      resolvedBy: null,
+      fromUserPick: null,
+      toUserPick: null,
+      fromPayoutDone: false,
+      toPayoutDone: false,
+      autoResolved: false
+    });
+
+    await sendNotification(
+      selectedChallengeOpponent.id,
+      '⚔️ ' + currentUser.name + ' te je izzval: "' + description + '" za ' + amount + ' 🪙 — sprejmi ali zavrni v zavihku IZZIVI.',
+      'challenge'
+    );
+
+    showToast('Izziv poslan! ⚔️');
+    closeNewChallengeModal();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri pošiljanju izziva!', true);
+  }
+}
+
+// Izriše eno kartico za AKTIVEN izziv (accepted ali disputed) — prikaže
+// gumbe "kdo je zmagal", ne glede na to, ali sem izzivalec ali izzvani.
+// Če se oba (neodvisno) strinjata, se izziv TAKOJ razreši sam (glej
+// submitChallengePick) — manager je potreben samo, če se ne strinjata.
+function renderActiveChallengeCard(c) {
+  var isFrom = c.fromUserId === currentUser.id;
+  var opponentName = isFrom ? c.toUserName : c.fromUserName;
+  var myPick = isFrom ? c.fromUserPick : c.toUserPick;
+  var otherPick = isFrom ? c.toUserPick : c.fromUserPick;
+
+  var statusNote;
+  if (c.status === 'disputed') {
+    statusNote = '<div style="font-size:13px;color:#ff4444;font-weight:700;margin-top:8px;">⚠️ Ne strinjata se — manager/superadmin bo odločil.</div>';
+  } else if (myPick && !otherPick) {
+    statusNote = '<div style="font-size:13px;color:var(--muted);margin-top:8px;">⏳ Tvoja izbira je shranjena — čaka še ' + opponentName + '.</div>';
+  } else if (!myPick) {
+    statusNote = '<div style="font-size:13px;color:var(--muted);margin-top:8px;">Kdo je po tvojem mnenju zmagal?</div>';
+  } else {
+    statusNote = '<div style="font-size:13px;color:var(--muted);margin-top:8px;">🤝 Obdelujem soglasje...</div>';
+  }
+
+  function pickBtn(uid, name) {
+    var active = myPick === uid;
+    return '<button class="btn-sm" style="flex:1;' + (active ? 'border-color:var(--orange);color:var(--orange);background:rgba(255,107,0,0.12);' : '') +
+      '" onclick="submitChallengePick(\'' + c.id + '\',\'' + uid + '\')">' + (active ? '✓ ' : '') + '🏆 ' + name + '</button>';
+  }
+
+  return '<div style="background:var(--card2);border:1px solid ' + (c.status === 'disputed' ? '#ff4444' : 'var(--border)') + ';border-radius:10px;padding:14px;margin-bottom:10px;">' +
+    '<div style="font-weight:700;margin-bottom:4px;">' + (isFrom ? 'Izzval si: ' : 'Sprejel si izziv od: ') + opponentName + '</div>' +
+    '<div style="font-size:14px;color:var(--text);margin-bottom:8px;">"' + c.description + '"</div>' +
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Vložek: ' + c.amount + ' 🪙 (vsak) — zmagovalec dobi +' + c.amount + ', poraženec -' + c.amount + '</div>' +
+    '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Kdo je zmagal?</div>' +
+    '<div style="display:flex;gap:8px;">' + pickBtn(c.fromUserId, c.fromUserName) + pickBtn(c.toUserId, c.toUserName) + '</div>' +
+    statusNote +
+  '</div>';
+}
+
+function renderChallenges() {
+  var receivedEl = document.getElementById('challengesReceivedList');
+  var sentEl = document.getElementById('challengesSentList');
+  var historyEl = document.getElementById('challengesHistoryList');
+  if (!receivedEl || !sentEl || !historyEl) return; // home tab (še) ni naložen
+
+  var receivedPending = myChallengesReceived.filter(function(c) { return c.status === 'pending'; });
+  var sentPending = myChallengesSent.filter(function(c) { return c.status === 'pending'; });
+  var allActive = myChallengesSent.concat(myChallengesReceived)
+    .filter(function(c) { return c.status === 'accepted' || c.status === 'disputed'; });
+  var history = myChallengesSent.concat(myChallengesReceived)
+    .filter(function(c) { return c.status === 'resolved' || c.status === 'declined' || c.status === 'cancelled'; })
+    .sort(function(a, b) { return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0); })
+    .slice(0, 15);
+
+  // Posodobi značko na zavihku
+  var tabBtn = document.getElementById('izziviTabBtn');
+  if (tabBtn) tabBtn.textContent = '⚔️ IZZIVI' + (receivedPending.length > 0 ? ' (' + receivedPending.length + ')' : '');
+
+  receivedEl.innerHTML = receivedPending.length === 0
+    ? '<div style="color:var(--muted);font-size:14px;">Ni čakajočih izzivov.</div>'
+    : receivedPending.map(function(c) {
+        return '<div style="background:var(--card2);border:1px solid var(--orange);border-radius:10px;padding:14px;margin-bottom:10px;">' +
+          '<div style="font-weight:700;margin-bottom:4px;">' + c.fromUserName + ' te izziva</div>' +
+          '<div style="font-size:14px;color:var(--text);margin-bottom:8px;">"' + c.description + '"</div>' +
+          '<div style="font-size:13px;color:var(--orange);font-weight:700;margin-bottom:10px;">Vložek: ' + c.amount + ' 🪙 (vsak)</div>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button class="btn-confirm" style="margin-top:0;flex:1;" onclick="acceptChallenge(\'' + c.id + '\')">✅ SPREJMI</button>' +
+            '<button class="btn-cancel" style="flex:1;" onclick="declineChallenge(\'' + c.id + '\')">❌ ZAVRNI</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+  sentEl.innerHTML = (sentPending.length === 0 && allActive.length === 0)
+    ? '<div style="color:var(--muted);font-size:14px;">Ni aktivnih izzivov.</div>'
+    : sentPending.map(function(c) {
+        return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">' +
+          '<div style="font-weight:700;margin-bottom:4px;">Izzval si: ' + c.toUserName + '</div>' +
+          '<div style="font-size:14px;color:var(--text);margin-bottom:6px;">"' + c.description + '"</div>' +
+          '<div style="font-size:13px;color:var(--muted);">⏳ Čaka na odgovor · ' + c.amount + ' 🪙</div>' +
+          '<button class="btn-cancel" style="margin-top:8px;width:100%;" onclick="cancelMyChallenge(\'' + c.id + '\')">PREKLIČI IZZIV</button>' +
+        '</div>';
+      }).join('') + allActive.map(renderActiveChallengeCard).join('');
+
+  historyEl.innerHTML = history.length === 0
+    ? '<div style="color:var(--muted);font-size:14px;">Še ni zgodovine.</div>'
+    : history.map(function(c) {
+        var isMine = c.fromUserId === currentUser.id;
+        var otherName = isMine ? c.toUserName : c.fromUserName;
+        var label;
+        if (c.status === 'declined') label = '❌ Zavrnjeno';
+        else if (c.status === 'cancelled') label = '🚫 Preklicano';
+        else if (c.status === 'resolved') {
+          var won = c.winnerId === currentUser.id;
+          var byWhom = c.autoResolved ? ' (soglasje)' : ' (manager)';
+          label = (won ? ('🏆 Zmagal si! +' + c.amount + ' 🪙') : ('💔 Izgubil si · -' + c.amount + ' 🪙')) + byWhom;
+        }
+        return '<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;opacity:0.85;">' +
+          '<div style="font-size:13px;font-weight:700;margin-bottom:2px;">vs ' + otherName + '</div>' +
+          '<div style="font-size:13px;color:var(--muted);margin-bottom:4px;">"' + c.description + '"</div>' +
+          '<div style="font-size:13px;">' + label + '</div>' +
+        '</div>';
+      }).join('');
+}
+
+// Igralec izbere, kdo je po njegovem mnenju zmagal. Če se ujema z izbiro
+// nasprotnika, se izziv TAKOJ sam razreši (brez managerja) — vsak od
+// obeh poravna SAMO svoje lastne kovance (self-update, vedno dovoljeno),
+// zato tu ni potrebe po dostopu do tujega /users dokumenta. Če se izbiri
+// NE ujemata, gre izziv v spor in o tem obvestimo managerja/superadmina.
+async function submitChallengePick(challengeId, pickedWinnerId) {
+  var justAutoResolved = false, justEnteredDispute = false, iWon = false, chAfter = null;
+  try {
+    await db.runTransaction(async function(tx) {
+      var chRef = db.collection('challenges').doc(challengeId);
+      var chSnap = await tx.get(chRef);
+      if (!chSnap.exists) throw new Error('Izziv ne obstaja več.');
+      var ch = chSnap.data();
+      if (ch.status !== 'accepted' && ch.status !== 'disputed') throw new Error('Ta izziv ni (več) na voljo za izbiro.');
+
+      var isFrom = (currentUser.id === ch.fromUserId);
+      var myPickField = isFrom ? 'fromUserPick' : 'toUserPick';
+      var otherPick = isFrom ? ch.toUserPick : ch.fromUserPick;
+
+      var patch = {};
+      patch[myPickField] = pickedWinnerId;
+
+      if (otherPick == null) {
+        tx.update(chRef, patch);
+        chAfter = Object.assign({ id: challengeId }, ch, patch);
+        return;
+      }
+
+      if (otherPick === pickedWinnerId) {
+        // Soglasje! Takoj razreši in poravnaj SVOJ delež kovancev.
+        patch.status = 'resolved';
+        patch.winnerId = pickedWinnerId;
+        patch.resolvedAt = firebase.firestore.FieldValue.serverTimestamp();
+        patch.resolvedBy = 'soglasje igralcev';
+        patch.autoResolved = true;
+        patch[isFrom ? 'fromPayoutDone' : 'toPayoutDone'] = true;
+
+        var won = (pickedWinnerId === currentUser.id);
+        var meRef = db.collection('users').doc(currentUser.id);
+        var meSnap = await tx.get(meRef);
+        var myCoins = (meSnap.data() || {}).coins || 0;
+        var delta = won ? ch.amount : -ch.amount;
+        tx.update(meRef, { coins: Math.max(0, myCoins + delta) });
+        tx.update(chRef, patch);
+
+        justAutoResolved = true;
+        iWon = won;
+      } else {
+        justEnteredDispute = (ch.status !== 'disputed');
+        patch.status = 'disputed';
+        tx.update(chRef, patch);
+      }
+      chAfter = Object.assign({ id: challengeId }, ch, patch);
+    });
+
+    if (justAutoResolved) {
+      currentUser.coins = (currentUser.coins || 0) + (iWon ? chAfter.amount : -chAfter.amount);
+      updateNavCoins();
+      showToast(iWon ? ('Zmagal si izziv! +' + chAfter.amount + ' 🪙 (soglasje)') : ('Izgubil si izziv. -' + chAfter.amount + ' 🪙 (soglasje)'));
+      var otherUid = (currentUser.id === chAfter.fromUserId) ? chAfter.toUserId : chAfter.fromUserId;
+      sendNotification(otherUid, '🤝 Oba sta se strinjala — izziv "' + chAfter.description + '" je razrešen!', 'challenge');
+    } else if (justEnteredDispute) {
+      showToast('Vajini izbiri se ne ujemata — obvestil sem managerja/superadmina.', true);
+      notifyStaffOfDispute(chAfter);
+    } else {
+      showToast('Tvoja izbira je shranjena.');
+    }
+  } catch(e) {
+    console.error(e);
+    showToast(e.message || 'Napaka pri oddaji izbire!', true);
+  }
+}
+
+// Pošlje managerju skupine + vsem superadminom/event adminom obvestilo,
+// da se igralca ne strinjata in je potrebna ročna potrditev zmagovalca.
+async function notifyStaffOfDispute(ch) {
+  try {
+    var recipients = {};
+    var groupSnap = await db.collection('groups').doc(ch.groupId).get();
+    if (groupSnap.exists && groupSnap.data().managerId) recipients[groupSnap.data().managerId] = true;
+    var staffSnap = await db.collection('users').where('role', 'in', ['superadmin', 'event_admin']).get();
+    staffSnap.docs.forEach(function(d) { recipients[d.id] = true; });
+
+    var msg = '⚠️ ' + ch.fromUserName + ' in ' + ch.toUserName + ' se ne strinjata pri izzivu "' + ch.description + '" — prosim potrdi zmagovalca v admin panelu.';
+    for (var uid in recipients) {
+      await sendNotification(uid, msg, 'challenge');
+    }
+  } catch(e) { console.warn('Napaka pri obveščanju staffa o sporu:', e.message); }
+}
+
+// Poklican vsakič, ko pride nov snapshot izziva — če je bil izziv razrešen
+// SAMOOSTOJNO (soglasje igralcev, ne manager) in JAZ svojega dela izplačila
+// še nisem prejel (npr. ker aplikacija ni bila odprta, ko se je zgodilo
+// soglasje druge strani), ga zdaj poravnam. Idempotentno prek transakcije.
+async function ensureChallengePayoutApplied(ch) {
+  if (!ch || ch.status !== 'resolved' || !ch.autoResolved) return;
+  var isFrom = ch.fromUserId === currentUser.id;
+  var isTo = ch.toUserId === currentUser.id;
+  if (!isFrom && !isTo) return;
+  var myFlag = isFrom ? 'fromPayoutDone' : 'toPayoutDone';
+  if (ch[myFlag]) return;
+
+  try {
+    var applied = false, delta = 0;
+    await db.runTransaction(async function(tx) {
+      var chRef = db.collection('challenges').doc(ch.id);
+      var chSnap = await tx.get(chRef);
+      if (!chSnap.exists) return;
+      var fresh = chSnap.data();
+      if (fresh.status !== 'resolved' || !fresh.autoResolved || fresh[myFlag]) return;
+
+      var won = (fresh.winnerId === currentUser.id);
+      delta = won ? fresh.amount : -fresh.amount;
+      var meRef = db.collection('users').doc(currentUser.id);
+      var meSnap = await tx.get(meRef);
+      var myCoins = (meSnap.data() || {}).coins || 0;
+      tx.update(meRef, { coins: Math.max(0, myCoins + delta) });
+      var patch = {}; patch[myFlag] = true;
+      tx.update(chRef, patch);
+      applied = true;
+    });
+    if (applied) {
+      currentUser.coins = (currentUser.coins || 0) + delta;
+      updateNavCoins();
+    }
+  } catch(e) {
+    console.warn('Napaka pri poravnavi izplačila izziva:', e.message);
+  }
+}
+
+async function acceptChallenge(challengeId) {
+  var ch = myChallengesReceived.find(function(c) { return c.id === challengeId; });
+  if (ch && ch.amount > (currentUser.coins || 0)) {
+    showToast('Nimaš dovolj kovancev za ta vložek! (Kovanci se odštejejo šele, ko manager potrdi izziv.)', true);
+    return;
+  }
+  try {
+    // Igralec spremeni SAMO status — kovanci se knjižijo šele pri
+    // razrešitvi (manager), ker igralec nima pravice pisati v tujo
+    // /users listino. Glej opombo v firestore.rules.
+    await db.collection('challenges').doc(challengeId).update({ status: 'accepted' });
+    showToast('Izziv sprejet! Vložek se odšteje, ko manager potrdi zmagovalca. ⚔️');
+    if (ch) sendNotification(ch.fromUserId, '✅ ' + currentUser.name + ' je sprejel tvoj izziv: "' + ch.description + '"!', 'challenge');
+  } catch(e) {
+    console.error(e);
+    showToast(e.message || 'Napaka pri sprejemanju izziva!', true);
+  }
+}
+
+async function declineChallenge(challengeId) {
+  try {
+    var ch = myChallengesReceived.find(function(c) { return c.id === challengeId; });
+    await db.collection('challenges').doc(challengeId).update({ status: 'declined' });
+    showToast('Izziv zavrnjen.');
+    if (ch) sendNotification(ch.fromUserId, '❌ ' + currentUser.name + ' je zavrnil tvoj izziv: "' + ch.description + '".', 'challenge');
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri zavračanju izziva!', true);
+  }
+}
+
+async function cancelMyChallenge(challengeId) {
+  try {
+    var ch = myChallengesSent.find(function(c) { return c.id === challengeId; });
+    if (ch && ch.status !== 'pending') { showToast('Ta izziv je že sprejet/zaključen — ne moreš ga več preklicati.', true); return; }
+    await db.collection('challenges').doc(challengeId).update({ status: 'cancelled' });
+    showToast('Izziv preklican.');
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri preklicu izziva!', true);
+  }
+}
+
+// ----- ADMIN: potrditev zmagovalca 1v1 izziva -----
+var adminChallengesCache = [];
+
+async function loadAdminChallenges() {
+  var listEl = document.getElementById('adminChallengesList');
+  listEl.innerHTML = '<div style="color:var(--muted);font-size:14px;">Nalaganje...</div>';
+  try {
+    var snap = await db.collection('challenges').where('status', 'in', ['accepted', 'disputed']).get();
+    var all = snap.docs.map(function(d) { return { id: d.id, ...d.data() }; });
+    var isGlobalStaff = currentAdmin.role === 'superadmin' || currentAdmin.role === 'event_admin';
+    adminChallengesCache = isGlobalStaff ? all : all.filter(function(c) { return c.groupId === currentAdmin.groupId; });
+    adminChallengesCache.sort(function(a, b) { return (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0); });
+    renderAdminChallenges();
+  } catch(e) {
+    console.error(e);
+    listEl.innerHTML = '<div style="color:#ff4444;font-size:14px;">Napaka pri nalaganju izzivov.</div>';
+  }
+}
+
+function renderAdminChallenges() {
+  var listEl = document.getElementById('adminChallengesList');
+  if (adminChallengesCache.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--muted);font-size:14px;">Ni sprejetih izzivov, ki čakajo na potrditev.</div>';
+    return;
+  }
+  listEl.innerHTML = adminChallengesCache.map(function(c) {
+    var disputeNote = c.status === 'disputed'
+      ? '<div style="font-size:13px;color:#ff4444;font-weight:700;margin-bottom:10px;">⚠️ SPOR: ' + c.fromUserName + ' pravi "' + (c.fromUserPick === c.fromUserId ? c.fromUserName : c.toUserName) + '", ' + c.toUserName + ' pravi "' + (c.toUserPick === c.fromUserId ? c.fromUserName : c.toUserName) + '"</div>'
+      : '<div style="font-size:13px;color:var(--muted);margin-bottom:10px;">✅ Sprejeto — igralca še nista (oba) izbrala zmagovalca, ali čakata na tebe.</div>';
+    return '<div style="background:var(--card2);border:1px solid ' + (c.status === 'disputed' ? '#ff4444' : 'var(--border)') + ';border-radius:10px;padding:16px;margin-bottom:12px;">' +
+      '<div style="font-weight:700;font-size:15px;margin-bottom:4px;">' + c.fromUserName + ' 🆚 ' + c.toUserName + '</div>' +
+      '<div style="font-size:14px;color:var(--text);margin-bottom:8px;">"' + c.description + '"</div>' +
+      '<div style="font-size:13px;color:var(--orange);font-weight:700;margin-bottom:8px;">Vložek: ' + c.amount + ' 🪙 (vsak) — zmagovalec dobi +' + c.amount + ', poraženec -' + c.amount + '</div>' +
+      disputeNote +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<button class="btn-confirm" style="margin-top:0;flex:1;min-width:140px;" onclick="resolveChallengeAsManager(\'' + c.id + '\',\'' + c.fromUserId + '\')">🏆 ZMAGAL: ' + c.fromUserName + '</button>' +
+        '<button class="btn-confirm" style="margin-top:0;flex:1;min-width:140px;" onclick="resolveChallengeAsManager(\'' + c.id + '\',\'' + c.toUserId + '\')">🏆 ZMAGAL: ' + c.toUserName + '</button>' +
+      '</div>' +
+      '<button class="btn-cancel" style="width:100%;margin-top:8px;" onclick="cancelChallengeAsManager(\'' + c.id + '\')">🚫 PREKLIČI IZZIV</button>' +
+    '</div>';
+  }).join('');
+}
+
+async function resolveChallengeAsManager(challengeId, winnerId) {
+  if (!confirm('Potrdi zmagovalca — zmagovalcu se izplača +vložek, poražencu odšteje -vložek. Tega ni mogoče razveljaviti.')) return;
+  try {
+    var ch = adminChallengesCache.find(function(c) { return c.id === challengeId; });
+    if (!ch) { showToast('Izziv ni najden.', true); return; }
+    var winnerName = winnerId === ch.fromUserId ? ch.fromUserName : ch.toUserName;
+    var loserId = winnerId === ch.fromUserId ? ch.toUserId : ch.fromUserId;
+
+    // Kovanci se knjižijo šele TUKAJ (ne ob sprejemu izziva) — manager
+    // ima pravico pisati v poljubno /users listino (isAnyManager()),
+    // igralec pa ne, zato je to edini varen trenutek za premik denarja.
+    // Noben vložek ni bil predhodno "zamrznjen" (ni escrowa), zato mora
+    // biti to izplačilo zero-sum: zmagovalec +amount, poraženec -amount
+    // (enaka logika kot pri samodejni razrešitvi s soglasjem igralcev).
+    var winnerSnap = await db.collection('users').doc(winnerId).get();
+    var loserSnap = await db.collection('users').doc(loserId).get();
+    var winnerCoins = (winnerSnap.data() || {}).coins || 0;
+    var loserCoins = (loserSnap.data() || {}).coins || 0;
+
+    await db.collection('users').doc(winnerId).update({ coins: winnerCoins + ch.amount });
+    await db.collection('users').doc(loserId).update({ coins: Math.max(0, loserCoins - ch.amount) });
+
+    await db.collection('challenges').doc(challengeId).update({
+      status: 'resolved',
+      winnerId: winnerId,
+      resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      resolvedBy: currentAdmin.id || currentAdmin.name,
+      autoResolved: false,
+      fromPayoutDone: true,
+      toPayoutDone: true
+    });
+
+    await sendNotification(winnerId, '🏆 Zmagal si izziv "' + ch.description + '"! +' + ch.amount + ' 🪙', 'challenge');
+    await sendNotification(loserId, '💔 Izgubil si izziv "' + ch.description + '" proti ' + winnerName + '. -' + ch.amount + ' 🪙', 'challenge');
+
+    showToast('Izziv razrešen — ' + winnerName + ' je zmagal! 🏆');
+    loadAdminChallenges();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri razreševanju izziva!', true);
+  }
+}
+
+async function cancelChallengeAsManager(challengeId) {
+  if (!confirm('Prekliči ta izziv brez zmagovalca? (Kovanci se knjižijo šele ob razrešitvi, zato ni ničesar za vrniti.)')) return;
+  try {
+    var ch = adminChallengesCache.find(function(c) { return c.id === challengeId; });
+    if (!ch) { showToast('Izziv ni najden.', true); return; }
+
+    await db.collection('challenges').doc(challengeId).update({ status: 'cancelled' });
+
+    await sendNotification(ch.fromUserId, '🚫 Izziv "' + ch.description + '" je bil preklican s strani managerja.', 'challenge');
+    await sendNotification(ch.toUserId, '🚫 Izziv "' + ch.description + '" je bil preklican s strani managerja.', 'challenge');
+
+    showToast('Izziv preklican.');
+    loadAdminChallenges();
+  } catch(e) {
+    console.error(e);
+    showToast('Napaka pri preklicu izziva!', true);
+  }
+}
+
 async function ustvariStavo() {
   const betType = document.getElementById('newBetType').value;
   const q = document.getElementById('newQ').value.trim();
@@ -6021,7 +6618,7 @@ async function sendNotification(userId, message, type) {
 // Deluje, dokler je Tigers Betting odprta v zavihku ali ozadju — ni prava
 // push obvestila (tista bi zahtevala Firebase Cloud Functions s plačljivim
 // Blaze planom). Uporabnik mora enkrat dovoliti obvestila (glej notifPermModal).
-var DEFAULT_NOTIF_SETTINGS = { daily_bonus: true, new_event: true, bet_resolved: true };
+var DEFAULT_NOTIF_SETTINGS = { daily_bonus: true, new_event: true, bet_resolved: true, challenge: true };
 
 function getNotifSettings() {
   try {
@@ -6047,9 +6644,11 @@ function toggleNotifSettingsPanel() {
     var dbEl = document.getElementById('notifSetting_daily_bonus');
     var neEl = document.getElementById('notifSetting_new_event');
     var brEl = document.getElementById('notifSetting_bet_resolved');
+    var chEl = document.getElementById('notifSetting_challenge');
     if (dbEl) dbEl.checked = s.daily_bonus;
     if (neEl) neEl.checked = s.new_event;
     if (brEl) brEl.checked = s.bet_resolved;
+    if (chEl) chEl.checked = s.challenge;
   }
 }
 
